@@ -1,0 +1,1034 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Cadence Atlas - interactive clitoral anatomy, notation library, and overlap tool.">
+<title>Cadence Atlas</title>
+<style>
+  /* ============================================================
+     TOKENS â€” identical set to the landing page
+     ============================================================ */
+  :root {
+    --paper:      #EDEEEA;
+    --paper-2:    #F7F8F4;
+    --paper-3:    #E2E4DE;
+    --ink:        #14181B;
+    --ink-2:      #4C5459;
+    --ink-3:      #767E82;
+    --rule:       #C9CDC6;
+    --rule-soft:  #DBDED7;
+    --carmine:    #A8213A;
+    --ochre:      #946C15;
+    --tissue:     #C8CCC4;
+    --tissue-hot: #B98E96;
+    --focus:      #A8213A;
+
+    --font-display: "Bahnschrift", "DIN Alternate", "Avenir Next Condensed", "Franklin Gothic Medium", "Arial Narrow", sans-serif;
+    --font-body:    "Charter", "Bitstream Charter", "Iowan Old Style", Cambria, Constantia, "Palatino Linotype", Georgia, serif;
+    --font-mono:    "Consolas", "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+
+    --measure: 63ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #101417; --paper-2: #171C20; --paper-3: #1D2429;
+      --ink: #E5E8E3; --ink-2: #9DA6AA; --ink-3: #77807F;
+      --rule: #2B3339; --rule-soft: #212930;
+      --carmine: #E0566F; --ochre: #D6A94A;
+      --tissue: #39434A; --tissue-hot: #6B4750; --focus: #E0566F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #101417; --paper-2: #171C20; --paper-3: #1D2429;
+    --ink: #E5E8E3; --ink-2: #9DA6AA; --ink-3: #77807F;
+    --rule: #2B3339; --rule-soft: #212930;
+    --carmine: #E0566F; --ochre: #D6A94A;
+    --tissue: #39434A; --tissue-hot: #6B4750; --focus: #E0566F;
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); font-size: 17px; line-height: 1.62;
+    margin: 0; -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  h1, h2, h3 {
+    font-family: var(--font-display); font-weight: 600; font-stretch: 87.5%;
+    letter-spacing: -0.005em; text-wrap: balance; margin: 0; line-height: 1.1;
+  }
+  h1 { font-size: clamp(32px, 5vw, 52px); font-stretch: 75%; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(24px, 3vw, 32px); }
+  h3 { font-size: 18px; }
+  p { margin: 0; }
+  a { color: var(--carmine); text-underline-offset: 3px; }
+
+  .mono { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; }
+  .shell { max-width: 1140px; margin: 0 auto; padding: 0 28px; }
+  svg { max-width: 100%; height: auto; display: block; }
+  .scroll-x { overflow-x: auto; }
+
+  /* ============================================================
+     AGE GATE
+     ============================================================ */
+  #gate { position: fixed; inset: 0; z-index: 100; background: var(--paper);
+          display: flex; align-items: center; justify-content: center; padding: 28px; }
+  #gate.gone { display: none; }
+  .gate-card { max-width: 460px; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule); padding: 30px 0 26px; }
+  .gate-card .mono { color: var(--ink-3); display: block; margin-bottom: 20px; }
+  .gate-card h2 { margin-bottom: 14px; }
+  .gate-card p { color: var(--ink-2); font-size: 15.5px; }
+  .gate-actions { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+  #gate-refused { margin-top: 20px; color: var(--ink-2); font-size: 15px; }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: var(--font-display); font-stretch: 87.5%; font-size: 15px; font-weight: 600;
+    letter-spacing: .02em; padding: 11px 22px; border: 1px solid var(--ink);
+    background: var(--ink); color: var(--paper); cursor: pointer; border-radius: 0;
+    transition: background .16s, border-color .16s;
+  }
+  .btn:hover { background: var(--carmine); border-color: var(--carmine); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+  .btn.ghost:hover { border-color: var(--ink); background: transparent; }
+  .btn[disabled] { opacity: .35; cursor: not-allowed; }
+  .btn[disabled]:hover { background: var(--ink); border-color: var(--ink); }
+
+  .seg { display: inline-flex; border: 1px solid var(--rule); flex-wrap: wrap; }
+  .seg button {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .11em; text-transform: uppercase;
+    padding: 8px 14px; border: none; background: transparent; color: var(--ink-2); cursor: pointer;
+  }
+  .seg button + button { border-left: 1px solid var(--rule); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+  /* ============================================================
+     MASTHEAD + NAV
+     ============================================================ */
+  .masthead { border-bottom: 1px solid var(--ink); padding: 22px 0 14px;
+              display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--font-display); font-stretch: 75%; font-weight: 700; font-size: 27px;
+              letter-spacing: .22em; text-transform: uppercase; line-height: 1; color: var(--ink); text-decoration: none; }
+  .masthead .tag { color: var(--ink-3); border: 1px solid var(--rule); padding: 3px 8px; }
+
+  nav.main { border-bottom: 1px solid var(--rule); display: flex; gap: 0; flex-wrap: wrap; }
+  nav.main a {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase;
+    padding: 14px 0; margin-right: 30px; color: var(--ink-3); text-decoration: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  nav.main a:hover { color: var(--ink); }
+  nav.main a.on { color: var(--ink); border-bottom-color: var(--carmine); }
+  nav.main .spacer { flex: 1; }
+  nav.main .free { color: var(--carmine); border: 1px solid var(--rule); padding: 4px 9px;
+                   align-self: center; margin-right: 0; }
+
+  /* ============================================================
+     VIEWS
+     ============================================================ */
+  .view { display: none; padding: 46px 0 80px; }
+  .view.on { display: block; }
+  .view-head { display: flex; flex-direction: column; gap: 16px; max-width: var(--measure); margin-bottom: 38px; }
+  .view-head .mono { color: var(--ink-3); }
+  .view-head p { color: var(--ink-2); }
+  .view-head p strong { color: var(--ink); font-weight: 600; }
+
+  figure { margin: 0; background: var(--paper-2); border: 1px solid var(--rule); padding: 26px 26px 20px; }
+  figcaption { font-size: 14px; color: var(--ink-2); border-top: 1px solid var(--rule-soft);
+               padding-top: 12px; margin-top: 16px; max-width: 68ch; }
+  figcaption b { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em;
+                 text-transform: uppercase; color: var(--ink-3); font-weight: 400; }
+  .fig-head { display: flex; align-items: center; justify-content: space-between;
+              gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .fig-head .mono { color: var(--ink-3); }
+
+  /* ============================================================
+     ATLAS
+     ============================================================ */
+  .atlas-grid { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 30px; align-items: start; }
+  @media (max-width: 900px) { .atlas-grid { grid-template-columns: 1fr; } }
+
+  #atlasvg .tissue { fill: var(--tissue); stroke: var(--ink); stroke-width: 1.1;
+                     transition: fill .6s ease, transform .6s cubic-bezier(.3,.7,.3,1); }
+  #atlasvg .glans  { fill: var(--carmine); stroke: var(--ink); stroke-width: 1.1;
+                     transition: transform .6s cubic-bezier(.3,.7,.3,1); }
+  #atlasvg .swell  { transform-box: fill-box; transform-origin: center; }
+  #atlasvg.aroused .tissue { fill: var(--tissue-hot); }
+  #atlasvg.aroused .swell.bulb { transform: scale(1.22); }
+  #atlasvg.aroused .swell.crus { transform: scale(1.10); }
+  #atlasvg.aroused .swell.gl   { transform: scale(1.18); }
+
+  #atlasvg .lead { stroke: var(--ink-3); stroke-width: .9; fill: none; }
+  #atlasvg .leaddot { fill: var(--ink-3); }
+  #atlasvg .lbl { font-family: var(--font-mono); font-size: 11px; letter-spacing: .09em;
+                  text-transform: uppercase; fill: var(--ink-2); }
+  #atlasvg .scale { stroke: var(--ochre); stroke-width: 1.2; fill: none; }
+  #atlasvg .scaletxt { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; fill: var(--ochre); }
+
+  .hotspot { cursor: pointer; }
+  .hotspot:hover .lbl, .hotspot:focus .lbl { fill: var(--carmine); }
+  .hotspot:hover .lead, .hotspot:focus .lead { stroke: var(--carmine); }
+  .hotspot:hover .leaddot, .hotspot:focus .leaddot { fill: var(--carmine); }
+  #atlasvg.sel-crus .p-crus, #atlasvg.sel-bulb .p-bulb,
+  #atlasvg.sel-body .p-body, #atlasvg.sel-glans .p-glans { fill: var(--carmine); }
+
+  .detail { border-top: 2px solid var(--ink); padding-top: 18px; display: flex; flex-direction: column; gap: 16px; }
+  .detail .mono { color: var(--carmine); }
+  .detail h3 { font-size: 22px; }
+  .detail dl { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+  .detail dt { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em;
+               text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px; }
+  .detail dd { margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.55; }
+  .detail dd b { color: var(--ink); font-weight: 600; }
+  .hint { font-size: 14.5px; color: var(--ink-3); font-style: italic; }
+
+  /* ============================================================
+     LIBRARY
+     ============================================================ */
+  .filters { display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+             border-bottom: 1px solid var(--rule); padding-bottom: 18px; margin-bottom: 30px; }
+  .filters .mono { color: var(--ink-3); }
+  #lib-count { margin-left: auto; color: var(--ink-3); }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1px;
+           background: var(--rule); border: 1px solid var(--rule); }
+  .card { background: var(--paper); border: none; text-align: left; padding: 22px 22px 20px;
+          cursor: pointer; display: flex; flex-direction: column; gap: 14px;
+          font-family: inherit; transition: background .15s; }
+  .card:hover { background: var(--paper-2); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .card .num { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; color: var(--carmine); }
+  .card .region { font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em;
+                  text-transform: uppercase; color: var(--ink-3); border: 1px solid var(--rule); padding: 2px 7px; }
+  .card h3 { font-size: 19px; }
+  .card p { font-size: 14.5px; color: var(--ink-2); line-height: 1.5; }
+  .thumb { align-self: center; }
+  .thumb .t-field { fill: var(--paper-3); stroke: var(--ink-3); stroke-width: 1; }
+  .thumb .t-path { fill: none; stroke: var(--carmine); stroke-linecap: round;
+                   stroke-dasharray: 4 5; }
+  .card:hover .t-path { animation: march 1.1s linear infinite; }
+  @keyframes march { to { stroke-dashoffset: -18; } }
+
+  /* ============================================================
+     TECHNIQUE DETAIL
+     ============================================================ */
+  .back { font-family: var(--font-mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase;
+          color: var(--ink-3); text-decoration: none; display: inline-block; margin-bottom: 26px; }
+  .back:hover { color: var(--carmine); }
+  .tech-grid { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 30px; align-items: start; }
+  @media (max-width: 900px) { .tech-grid { grid-template-columns: 1fr; } }
+
+  #notefield .field { fill: var(--paper-3); stroke: var(--ink); stroke-width: 1.4; }
+  #notefield .contour { fill: none; stroke: var(--ink-3); stroke-width: .8; stroke-dasharray: 2 4; opacity: .55; }
+  #notefield .track { fill: none; stroke: var(--carmine); stroke-linecap: round; opacity: .85; }
+  #notefield .halo { fill: var(--carmine); opacity: .16; }
+  #notefield .head { fill: var(--carmine); stroke: var(--paper-2); stroke-width: 1.5; }
+  #notefield .tick { stroke: var(--ink-3); stroke-width: 1; }
+  #notefield .ticktxt { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; fill: var(--ink-3); }
+
+  .controls { display: flex; flex-direction: column; gap: 22px; }
+  .ctl-group { display: flex; flex-direction: column; gap: 9px; }
+  .ctl-group > .mono { color: var(--ink-3); }
+  input[type="range"] { width: 100%; accent-color: var(--carmine); margin: 0; }
+  .readout { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .08em;
+             color: var(--ink-2); display: flex; justify-content: space-between; gap: 10px; }
+  .readout span:last-child { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .panel { border-top: 1px solid var(--rule); padding-top: 16px; }
+  .panel b { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+             color: var(--carmine); font-weight: 400; display: block; margin-bottom: 7px; }
+  .panel p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; }
+
+  ol.fix { margin: 0; padding: 0; list-style: none; counter-reset: fix;
+           display: flex; flex-direction: column; gap: 10px; }
+  ol.fix li { counter-increment: fix; position: relative; padding-left: 30px;
+              font-size: 15px; color: var(--ink-2); line-height: 1.5; }
+  ol.fix li::before { content: counter(fix); position: absolute; left: 0; top: 1px;
+                      font-family: var(--font-mono); font-size: 10.5px; color: var(--carmine);
+                      border: 1px solid var(--rule); width: 20px; height: 20px;
+                      display: flex; align-items: center; justify-content: center; }
+
+  /* ============================================================
+     OVERLAP TOOL
+     ============================================================ */
+  .step { display: none; }
+  .step.on { display: block; }
+  .progress { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em;
+              text-transform: uppercase; color: var(--ink-3); display: flex; gap: 8px;
+              align-items: center; margin-bottom: 26px; }
+  .progress i { flex: 1; height: 2px; background: var(--rule); position: relative; font-style: normal; max-width: 220px; }
+  .progress i span { position: absolute; inset: 0 auto 0 0; background: var(--carmine); transition: width .3s; }
+
+  .qcard { border-top: 1px solid var(--rule); padding: 20px 0;
+           display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; align-items: center; }
+  .qcard:last-of-type { border-bottom: 1px solid var(--rule); }
+  .qcard h3 { font-size: 17px; font-stretch: 100%; }
+  .qcard p { font-size: 14px; color: var(--ink-3); margin-top: 3px; }
+  .choices { display: inline-flex; border: 1px solid var(--rule); }
+  .choices button { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em;
+                    text-transform: uppercase; padding: 9px 13px; border: none;
+                    background: transparent; color: var(--ink-3); cursor: pointer; }
+  .choices button + button { border-left: 1px solid var(--rule); }
+  .choices button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .choices button[data-v="no"][aria-pressed="true"] { background: var(--ink-3); }
+  .choices button[data-v="yes"][aria-pressed="true"] { background: var(--carmine); }
+
+  .handoff { border: 1px solid var(--rule); background: var(--paper-2); padding: 34px;
+             max-width: 560px; display: flex; flex-direction: column; gap: 16px; }
+  .handoff p { color: var(--ink-2); font-size: 15.5px; }
+
+  .match { border-top: 1px solid var(--rule); padding: 16px 0;
+           display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 16px; align-items: baseline; }
+  .match:last-child { border-bottom: 1px solid var(--rule); }
+  .match .verdict { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em;
+                    text-transform: uppercase; color: var(--carmine); white-space: nowrap; }
+  .match .verdict.curious { color: var(--ochre); }
+  .empty { border: 1px solid var(--rule); padding: 30px; color: var(--ink-2); font-size: 15.5px; max-width: 60ch; }
+
+  footer { border-top: 1px solid var(--ink); padding: 26px 0 54px;
+           display: flex; gap: 22px; justify-content: space-between; flex-wrap: wrap; }
+  footer p { color: var(--ink-3); font-size: 13.5px; max-width: 46ch; }
+  footer .mono { color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body><!-- ================= AGE GATE ================= -->
+<div id="gate">
+  <div class="gate-card">
+    <span class="mono">Cadence Â· Adults only</span>
+    <h2>This is explicit sexual health education.</h2>
+    <p>Clinical anatomy, technique instruction, and frank discussion of sexual function. Intended for adults. It contains no pornography and no photographs of people.</p>
+    <div class="gate-actions">
+      <button class="btn" id="gate-yes">I am 18 or older â€” enter</button>
+      <button class="btn ghost" id="gate-no">Leave</button>
+    </div>
+    <p id="gate-refused" hidden>Understood. Close this tab to leave. If you are looking for general sexual health information, your national health service is a good place to start.</p>
+  </div>
+</div>
+
+<div class="shell">
+  <header class="masthead">
+    <a class="wordmark" href="#/atlas">Cadence</a>
+    <div class="mono tag">18+</div>
+  </header>
+  <nav class="main">
+    <a href="#/atlas" data-route="atlas">Atlas</a>
+    <a href="#/library" data-route="library">Notation library</a>
+    <a href="#/overlap" data-route="overlap">Overlap tool</a>
+    <span class="spacer"></span>
+    <span class="mono free">Atlas is free</span>
+  </nav>
+</div>
+
+<main class="shell">
+
+  <!-- ============ VIEW: ATLAS ============ -->
+  <section class="view" id="v-atlas">
+    <div class="view-head">
+      <span class="mono">Free Â· No account needed</span>
+      <h1>The clitoral atlas</h1>
+      <p>Click any labelled structure to read it. The <strong>arousal toggle</strong> is the part most diagrams leave out entirely â€” this tissue is erectile, and its resting shape is not the shape it works in.</p>
+    </div>
+
+    <div class="atlas-grid">
+      <figure>
+        <div class="fig-head">
+          <span class="mono">Anterior view Â· deep dissection</span>
+          <div class="seg" role="group" aria-label="Arousal state">
+            <button id="st-rest" aria-pressed="true">Resting</button>
+            <button id="st-arou" aria-pressed="false">Aroused</button>
+          </div>
+        </div>
+
+        <div class="scroll-x">
+          <svg id="atlasvg" viewBox="0 0 720 430" role="img"
+               aria-label="Anatomical diagram of the clitoral complex in the resting state, showing glans, body, crura and vestibular bulbs.">
+            <g>
+              <path class="tissue swell crus p-crus" d="M 356 84 C 326 110, 276 158, 242 214 C 222 248, 210 280, 205 306 L 197 305 C 201 277, 212 245, 232 211 C 264 155, 310 105, 340 80 Z"/>
+              <path class="tissue swell bulb p-bulb" d="M 341 128 C 324 152, 313 184, 311 216 C 309 246, 316 270, 329 282 C 340 269, 346 240, 346 208 C 346 174, 344 146, 341 128 Z"/>
+            </g>
+            <g transform="matrix(-1,0,0,1,720,0)">
+              <path class="tissue swell crus p-crus" d="M 356 84 C 326 110, 276 158, 242 214 C 222 248, 210 280, 205 306 L 197 305 C 201 277, 212 245, 232 211 C 264 155, 310 105, 340 80 Z"/>
+              <path class="tissue swell bulb p-bulb" d="M 341 128 C 324 152, 313 184, 311 216 C 309 246, 316 270, 329 282 C 340 269, 346 240, 346 208 C 346 174, 344 146, 341 128 Z"/>
+            </g>
+
+            <path class="tissue swell p-body" d="M 347 116 C 343 104, 344 90, 350 78 L 370 78 C 376 90, 377 104, 373 116 Z"/>
+            <path class="tissue" d="M 360 210 C 350 228, 349 258, 360 282 C 371 258, 370 228, 360 210 Z" opacity=".85"/>
+            <circle class="tissue" cx="360" cy="188" r="4.5"/>
+            <ellipse class="glans swell gl p-glans" cx="360" cy="124" rx="14" ry="12"/>
+
+            <g class="hotspot" data-part="glans" tabindex="0" role="button" aria-label="Glans">
+              <circle class="leaddot" cx="374" cy="120" r="2"/>
+              <path class="lead" d="M 374 120 L 470 96 L 500 96"/>
+              <text class="lbl" x="506" y="100">Glans</text>
+            </g>
+            <g class="hotspot" data-part="body" tabindex="0" role="button" aria-label="Body, corpus">
+              <circle class="leaddot" cx="374" cy="90" r="2"/>
+              <path class="lead" d="M 374 90 L 470 62 L 500 62"/>
+              <text class="lbl" x="506" y="66">Body Â· corpus</text>
+            </g>
+            <g class="hotspot" data-part="crus" tabindex="0" role="button" aria-label="Crura">
+              <circle class="leaddot" cx="232" cy="212" r="2"/>
+              <path class="lead" d="M 232 212 L 150 186 L 122 186"/>
+              <text class="lbl" x="116" y="190" text-anchor="end">Crus Ã— 2</text>
+            </g>
+            <g class="hotspot" data-part="bulb" tabindex="0" role="button" aria-label="Vestibular bulbs">
+              <circle class="leaddot" cx="322" cy="256" r="2"/>
+              <path class="lead" d="M 322 256 L 172 296 L 144 296"/>
+              <text class="lbl" x="138" y="300" text-anchor="end">Vestibular bulb Ã— 2</text>
+            </g>
+            <g class="hotspot" data-part="urethra" tabindex="0" role="button" aria-label="Urethral opening">
+              <circle class="leaddot" cx="366" cy="188" r="2"/>
+              <path class="lead" d="M 366 188 L 470 178 L 500 178"/>
+              <text class="lbl" x="506" y="182">Urethral opening</text>
+            </g>
+            <g class="hotspot" data-part="vestibule" tabindex="0" role="button" aria-label="Vaginal opening">
+              <circle class="leaddot" cx="368" cy="252" r="2"/>
+              <path class="lead" d="M 368 252 L 470 262 L 500 262"/>
+              <text class="lbl" x="506" y="266">Vaginal opening</text>
+            </g>
+
+            <g>
+              <path class="scale" d="M 197 350 L 197 344 M 197 350 L 523 350 M 523 350 L 523 344"/>
+              <text class="scaletxt" x="360" y="368" text-anchor="middle">â‰ˆ 9â€“10 cm of erectile tissue</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption><b>Atlas</b> &nbsp; Anterior view with the labia and superficial fascia removed, which is why nothing here looks like what you see from outside. The glans is the only part that reaches the surface.</figcaption>
+      </figure>
+
+      <aside class="detail" id="atlas-detail">
+        <span class="mono" id="d-kicker">Select a structure</span>
+        <h3 id="d-name">Six labelled structures</h3>
+        <p class="hint" id="d-hint">Click a label on the diagram, or tab to it and press Enter. Then try the arousal toggle and watch which parts change.</p>
+        <dl id="d-fields" hidden>
+          <div><dt>Size</dt><dd id="d-size"></dd></div>
+          <div><dt>What it does</dt><dd id="d-does"></dd></div>
+          <div><dt>When aroused</dt><dd id="d-arou"></dd></div>
+          <div><dt>Why it matters in practice</dt><dd id="d-prac"></dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: LIBRARY ============ -->
+  <section class="view" id="v-library">
+    <div class="view-head">
+      <span class="mono">Module 03 &amp; 04 Â· Notation</span>
+      <h1>Notation library</h1>
+      <p>Every technique is written as four variables â€” <strong>region, path, pressure, tempo</strong> â€” and paired with the anatomy it acts on. Filter by what you're doing, or by what isn't working.</p>
+    </div>
+
+    <div class="filters">
+      <span class="mono">Filter</span>
+      <div class="seg" role="group" aria-label="Filter by region">
+        <button data-filter="all" aria-pressed="true">All</button>
+        <button data-filter="hands" aria-pressed="false">Hands</button>
+        <button data-filter="mouth" aria-pressed="false">Mouth</button>
+        <button data-filter="solo" aria-pressed="false">Solo</button>
+      </div>
+      <span class="mono" id="lib-count"></span>
+    </div>
+
+    <div class="cards" id="lib-cards"></div>
+  </section>
+
+  <!-- ============ VIEW: TECHNIQUE ============ -->
+  <section class="view" id="v-technique">
+    <a class="back" href="#/library">â† All techniques</a>
+    <div class="view-head">
+      <span class="mono" id="t-kicker"></span>
+      <h1 id="t-name"></h1>
+      <p id="t-sum"></p>
+    </div>
+
+    <div class="tech-grid">
+      <figure>
+        <div class="fig-head">
+          <span class="mono">Notation Â· interactive</span>
+          <span class="mono" id="live-state"></span>
+        </div>
+        <div class="scroll-x">
+          <svg id="notefield" viewBox="0 0 340 330" role="img" aria-label="Technique notation diagram.">
+            <path class="field" d="M 170 64 C 222 60, 258 100, 260 152 C 262 206, 224 250, 170 252 C 116 254, 78 208, 80 152 C 82 100, 118 68, 170 64 Z"/>
+            <path class="contour" d="M 170 92 C 208 90, 232 118, 234 156 C 236 194, 208 222, 170 224 C 132 226, 106 194, 108 156 C 110 118, 132 94, 170 92 Z"/>
+            <path class="contour" d="M 170 118 C 196 117, 212 136, 213 157 C 214 180, 196 198, 170 199 C 144 200, 127 180, 128 157 C 129 136, 144 119, 170 118 Z"/>
+            <path class="contour" d="M 170 140 C 184 140, 193 148, 193 158 C 193 169, 184 177, 170 177 C 156 177, 147 169, 147 158 C 147 148, 156 140, 170 140 Z"/>
+            <path id="track" class="track" d="" stroke-width="4"/>
+            <circle id="halo" class="halo" cx="170" cy="158" r="14"/>
+            <circle id="head" class="head" cx="170" cy="158" r="6"/>
+            <g>
+              <path class="tick" d="M 34 276 L 306 276"/>
+              <text class="ticktxt" x="34" y="296">LIGHT</text>
+              <text class="ticktxt" x="306" y="296" text-anchor="end">FIRM</text>
+              <g id="pgauge"></g>
+            </g>
+          </svg>
+        </div>
+        <figcaption><b>Notation</b> &nbsp; The dotted contours are sensitivity gradient, not outline. The point is not to copy the path â€” it is to learn which single variable to change when something isn't working.</figcaption>
+      </figure>
+
+      <div class="controls">
+        <div class="ctl-group">
+          <div class="readout"><span>Pressure</span><span id="p-out">3 / 5</span></div>
+          <input type="range" id="pressure" min="1" max="5" step="1" value="3" aria-label="Pressure, 1 to 5">
+        </div>
+        <div class="ctl-group">
+          <div class="readout"><span>Tempo</span><span id="t-out">72 / min</span></div>
+          <input type="range" id="tempo" min="20" max="150" step="2" value="72" aria-label="Tempo in cycles per minute">
+        </div>
+        <div class="panel"><b>Anatomy</b><p id="t-anat"></p></div>
+        <div class="panel"><b>Most common mistake</b><p id="t-mistake"></p></div>
+      </div>
+    </div>
+
+    <div style="margin-top:44px; max-width:var(--measure); display:flex; flex-direction:column; gap:16px">
+      <h2>If it isn't landing, change these in order</h2>
+      <p style="color:var(--ink-2)">Changing everything at once tells you nothing. Change one variable, give it a full minute, then read the response before changing the next.</p>
+      <ol class="fix" id="t-fix"></ol>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: OVERLAP ============ -->
+  <section class="view" id="v-overlap">
+    <div class="view-head">
+      <span class="mono">Module 07 Â· Tool</span>
+      <h1>The overlap tool</h1>
+      <p>You each answer privately. At the end it shows <strong>only the things you both said yes or maybe to</strong>. Anything either of you declined is never displayed, never counted, and never hinted at â€” so a "no" costs nothing to give.</p>
+    </div>
+
+    <!-- step 0: intro -->
+    <div class="step on" id="s-intro">
+      <div class="handoff">
+        <h2>Twelve things. Two passes.</h2>
+        <p>One of you answers, hands the device over, and the other answers without seeing the first set. Nothing is saved and nothing leaves this page â€” closing the tab erases it.</p>
+        <div><button class="btn" id="ov-start">Start â€” first person</button></div>
+      </div>
+    </div>
+
+    <!-- step 1 & 2: answering -->
+    <div class="step" id="s-answer">
+      <div class="progress">
+        <span id="who">First person</span>
+        <i><span id="bar" style="width:0%"></span></i>
+        <span id="counted">0 of 12</span>
+      </div>
+      <div id="qlist"></div>
+      <div style="margin-top:26px; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+        <button class="btn" id="ov-next" disabled>Answer all twelve to continue</button>
+      </div>
+    </div>
+
+    <!-- handoff -->
+    <div class="step" id="s-handoff">
+      <div class="handoff">
+        <h2>Pass the device over.</h2>
+        <p>The first set of answers is hidden. The second person will not see them, and won't be able to work them out from what happens next.</p>
+        <div><button class="btn" id="ov-second">I'm the second person â€” start</button></div>
+      </div>
+    </div>
+
+    <!-- results -->
+    <div class="step" id="s-results">
+      <div class="view-head" style="margin-bottom:26px">
+        <span class="mono">Result</span>
+        <h2 id="res-head"></h2>
+        <p id="res-sub"></p>
+      </div>
+      <div id="res-list"></div>
+      <div style="margin-top:28px; display:flex; gap:10px; flex-wrap:wrap">
+        <button class="btn ghost" id="ov-reset">Clear and start over</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="shell">
+  <footer>
+    <a class="wordmark" href="#/atlas" style="font-size:19px">Cadence</a>
+    <p>Educational material for adults. Not medical advice, and not a substitute for care from a qualified clinician. If sex is painful, see a doctor before you change your technique.</p>
+    <span class="mono">18+ Â· Est. 2026</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ================= AGE GATE ================= */
+  var gate = document.getElementById("gate");
+  document.getElementById("gate-yes").addEventListener("click", function () { gate.classList.add("gone"); });
+  document.getElementById("gate-no").addEventListener("click", function () {
+    document.getElementById("gate-refused").hidden = false;
+  });
+
+  /* ================= DATA: ATLAS ================= */
+  var PARTS = {
+    glans: {
+      name: "Glans", kicker: "External Â· visible",
+      size: "Roughly 8 mm across in the resting state â€” about the size of a pea, though it varies widely and the variation means nothing.",
+      does: "The densest concentration of nerve endings in the body, commonly cited at around 8,000. It is the tip of the organ, not the organ.",
+      arou: "Engorges and lifts slightly. Late in arousal it often retracts under the hood, which is frequently misread as withdrawal or loss of interest â€” it is the opposite.",
+      prac: "Because the density is so high, <b>direct contact is often too much</b>, especially early. Most reported preferences involve working around it rather than on it."
+    },
+    body: {
+      name: "Body Â· corpus", kicker: "Internal Â· 2â€“4 cm",
+      size: "Two to four centimetres, angling back and up from the glans under the pubic bone.",
+      does: "Connects the glans to the two crura. Made of the same erectile tissue and engorges with them.",
+      arou: "Stiffens noticeably. It becomes possible to feel it as a firm cord under the skin above the glans.",
+      prac: "This is what you are actually pressing on when <b>indirect pressure through the hood</b> works better than direct contact. It is also why pressure applied slightly above the glans is a distinct technique, not a miss."
+    },
+    crus: {
+      name: "Crura", kicker: "Internal Â· paired Â· 5â€“9 cm each",
+      size: "Two legs, five to nine centimetres each, running back and down along the pubic arch.",
+      does: "The largest part of the organ by volume. Fully erectile and fully innervated.",
+      arou: "Engorge and stiffen along their whole length, which is what makes sensation spread well beyond the visible tip.",
+      prac: "Explains why <b>broad pressure over a wide area</b> can be more effective than precise contact on a small one, and why pressure applied through the outer labia registers at all."
+    },
+    bulb: {
+      name: "Vestibular bulbs", kicker: "Internal Â· paired",
+      size: "Paired erectile bodies, each several centimetres long, flanking the vaginal opening beneath the labia.",
+      does: "Fill with blood and swell around the entrance to the vagina.",
+      arou: "Roughly double in volume. This is most of what produces the feeling of tightening and fullness during arousal.",
+      prac: "The bulbs are a large part of what is being contacted during penetration, and much of what the <b>&ldquo;G-spot&rdquo; discussion is actually about</b> â€” the anterior vaginal wall sits directly against them."
+    },
+    urethra: {
+      name: "Urethral opening", kicker: "External Â· midline",
+      size: "A few millimetres, between the glans and the vaginal opening.",
+      does: "Urinary outlet. Surrounded by erectile tissue and glands.",
+      arou: "The surrounding tissue swells with everything else.",
+      prac: "Worth knowing simply so it isn't mistaken for the vaginal opening â€” a common and uncomfortable error. It is also <b>sensitive to pressure and easily irritated</b>; sustained friction here causes urinary symptoms afterwards."
+    },
+    vestibule: {
+      name: "Vaginal opening", kicker: "External Â· midline",
+      size: "Below the urethral opening, ringed by the vestibular bulbs and the pelvic floor muscles.",
+      does: "The entrance itself. The surrounding tissue, not the canal, carries most of the sensation.",
+      arou: "Lubricates, softens, and lengthens. The opening widens as the bulbs swell around it.",
+      prac: "Nerve density here is far lower than at the glans, which is the anatomical reason <b>penetration alone is insufficient for most people</b> â€” that finding is about anatomy, not effort."
+    }
+  };
+
+  /* ================= DATA: TECHNIQUES ================= */
+  var P = {
+    circle:  "M 170 106 C 199 106, 222 129, 222 158 C 222 187, 199 210, 170 210 C 141 210, 118 187, 118 158 C 118 129, 141 106, 170 106 Z",
+    lateral: "M 112 158 C 134 138, 206 138, 228 158 C 206 178, 134 178, 112 158 Z",
+    eight:   "M 170 158 C 192 132, 226 134, 226 158 C 226 182, 192 184, 170 158 C 148 132, 114 134, 114 158 C 114 182, 148 184, 170 158 Z",
+    held:    "M 170 148 C 176 148, 181 152, 181 158 C 181 164, 176 168, 170 168 C 164 168, 159 164, 159 158 C 159 152, 164 148, 170 148 Z",
+    vert:    "M 170 106 L 170 212",
+    offset:  "M 146 120 C 168 120, 184 138, 184 158 C 184 178, 168 196, 146 196 C 124 196, 108 178, 108 158 C 108 138, 124 120, 146 120 Z",
+    broad:   "M 106 178 C 130 132, 210 132, 234 178",
+    arc:     "M 118 148 C 140 118, 200 118, 222 148",
+    spiral:  "M 170 110 C 200 110, 220 132, 220 158 C 220 184, 198 202, 172 202 C 150 202, 134 186, 134 166 C 134 150, 146 140, 160 140 C 170 140, 178 148, 178 158",
+    sweepw:  "M 100 158 C 128 128, 158 188, 186 158 C 206 136, 226 148, 240 158"
+  };
+
+  var TECHS = [
+    { id:"circling", n:"Circling", r:"hands", p:3, t:72, d:P.circle,
+      sum:"Continuous circles around the glans rather than on it. The most commonly reported preference, and the sensible default to start from.",
+      anat:"Circles distribute contact around the glans and load the body and crura underneath, instead of concentrating everything on the densest nerve tissue in the body.",
+      mis:"Speeding up as a response to a good reaction. The reaction was to the tempo you were already at; changing it removes the thing that was working.",
+      fix:["Reduce pressure by one step and hold for a full minute.","Widen the circle so it clears the glans entirely.","Slow the tempo by about a third.","Only then change direction."] },
+
+    { id:"lateral", n:"Lateral sweep", r:"hands", p:2, t:88, d:P.lateral,
+      sum:"Side to side across the hood rather than through it. The gentlest of the moving paths, and the easiest to sustain.",
+      anat:"Moves across the hood, so the glans is loaded through a layer of tissue instead of directly. Recruits both crura symmetrically.",
+      mis:"Treating it as a warm-up to be abandoned. For a lot of people it is the technique, not the introduction to one.",
+      fix:["Shorten the sweep so it stays over the hood.","Add pressure before you add speed.","Keep the tempo identical for two full minutes.","Try it with the hood held taut by the other hand."] },
+
+    { id:"figure-eight", n:"Figure eight", r:"hands", p:3, t:64, d:P.eight,
+      sum:"Two loops crossing at the midline, so pressure keeps arriving from a changing angle.",
+      anat:"The crossing point sits over the body of the clitoris; the outer loops load each crus in turn. The varying angle resists sensory adaptation.",
+      mis:"Drawing it too large, so the crossing point wanders off the midline and the pattern loses its structure.",
+      fix:["Shrink the whole figure until the crossing is precise.","Slow down â€” this path rewards deliberateness.","Add pressure only at the crossing.","Switch to plain circling if concentration is the problem."] },
+
+    { id:"held", n:"Held pressure", r:"hands", p:4, t:20, d:P.held,
+      sum:"Sustained still contact with no movement at all. Frequently the last thing that happens before orgasm.",
+      anat:"Constant pressure on the body and glans without the moving stimulus that can, past a point, interrupt the response rather than build it.",
+      mis:"Abandoning it too early because it feels like nothing is being done. Stillness at the right moment is the technique.",
+      fix:["Hold longer than feels right â€” count to sixty.","Increase pressure gradually without moving.","Add the smallest possible vibration, not motion.","Return to circling and try again a minute later."] },
+
+    { id:"hood-anchor", n:"Hood anchor", r:"hands", p:3, t:76, d:P.offset,
+      sum:"One hand draws the hood upward and holds it; the other works below. Changes the contact surface entirely.",
+      anat:"Retracting the hood exposes more of the glans, so the same pressure registers considerably stronger. It also stabilises tissue that otherwise moves with your hand.",
+      mis:"Pulling too hard. This should be a light anchor, not traction â€” and for many people the exposed glans is then too sensitive for direct contact.",
+      fix:["Ease the anchor until it is barely taut.","Drop pressure by two steps, not one.","Work off to one side rather than centrally.","Release the anchor and keep the same path."] },
+
+    { id:"side-of-glans", n:"Off-centre pressure", r:"hands", p:3, t:70, d:P.arc,
+      sum:"Working consistently to one side rather than on the midline. Often markedly more effective, and asymmetrically so.",
+      anat:"Loads one crus more than the other. Sensitivity is frequently not symmetrical, and there is usually a preferred side.",
+      mis:"Assuming the preferred side is the same as yours, or that it stays the same throughout.",
+      fix:["Try the other side for a full minute.","Move further out, toward the crus.","Increase pressure â€” off-centre tolerates more.","Alternate sides on a slow count."] },
+
+    { id:"flat-tongue", n:"Flat broad tongue", r:"mouth", p:2, t:54, d:P.broad,
+      sum:"Wide, flat, slow contact covering the whole area rather than pointed contact on part of it.",
+      anat:"Broad coverage loads glans, hood and both bulbs at once. Low pressure over a large area rather than high pressure over a small one.",
+      mis:"Starting pointed and precise. Broad and slow is where most sessions should begin, and often where they should stay.",
+      fix:["Slow down by half â€” this path is almost always too fast.","Flatten further; reduce the point.","Add sustained contact at the top of each pass.","Stop moving entirely for ten seconds."] },
+
+    { id:"tip-circling", n:"Tongue-tip circling", r:"mouth", p:3, t:84, d:P.circle,
+      sum:"The circling path, done pointed. Precise, higher intensity, and harder to sustain.",
+      anat:"Concentrates contact into a small area â€” effective once arousal is well established, frequently too much before that.",
+      mis:"Using it as an opener. Precision before arousal reads as irritation rather than intensity.",
+      fix:["Widen the circle.","Flatten the tongue and return to broad contact.","Keep the tempo fixed and add pressure instead.","Alternate ten circles with ten broad passes."] },
+
+    { id:"suction", n:"Gentle suction, held", r:"mouth", p:4, t:20, d:P.held,
+      sum:"Light sustained suction with no movement. A held technique, closer to pressure than to motion.",
+      anat:"Draws blood into already engorged tissue and holds the glans in constant contact. The sensation is qualitatively different from pressure applied from outside.",
+      mis:"Too much suction, too early. This is a late-arousal technique and an easy one to overdo.",
+      fix:["Reduce the suction substantially.","Hold it steady rather than pulsing.","Combine with a still tongue rather than a moving one.","Release and return to broad contact."] },
+
+    { id:"rhythm-lock", n:"Rhythm lock", r:"mouth", p:3, t:96, d:P.vert,
+      sum:"Choosing one path, one pressure, one tempo, and not varying any of them until it is over.",
+      anat:"The build to orgasm depends on uninterrupted repetition. Variation resets it â€” which is why creativity late in the process is usually counterproductive.",
+      mis:"Improving on something that is already working. Almost every reported failure at this stage is a change that didn't need making.",
+      fix:["Change nothing. Wait a full two minutes.","If you must adjust, adjust pressure only, by one step.","Do not change the path.","Do not change the tempo."] },
+
+    { id:"mapping", n:"Sensitivity mapping", r:"solo", p:2, t:40, d:P.sweepw,
+      sum:"A structured sweep across the whole area, one region at a time, recording what registers where.",
+      anat:"Innervation is not uniform and not symmetrical. Mapping produces information no general guide can give you, because it is specific to you.",
+      mis:"Rushing to a known result. The value is in the regions you don't usually touch.",
+      fix:["Slow down; move one width at a time.","Use a lighter pressure than feels useful.","Cover the outer regions before the centre.","Repeat on another day â€” it changes across the cycle."] },
+
+    { id:"pressure-ladder", n:"Pressure ladder", r:"solo", p:3, t:60, d:P.spiral,
+      sum:"Fixing the path and tempo, then stepping pressure up one level at a time to find the ceiling.",
+      anat:"Isolates one variable. Because pressure tolerance shifts substantially as arousal builds, the useful figure is not one number but a curve.",
+      mis:"Changing tempo at the same time, which makes the result uninterpretable.",
+      fix:["Hold path and tempo absolutely fixed.","Spend a full minute at each step.","Note where it stops improving, not just where it hurts.","Repeat later in arousal â€” the ceiling will have moved."] }
+  ];
+
+  var REGION_LABEL = { hands: "Hands", mouth: "Mouth", solo: "Solo" };
+
+  /* ================= ROUTER ================= */
+  var views = { atlas: "v-atlas", library: "v-library", technique: "v-technique", overlap: "v-overlap" };
+
+  function hasTech(id) {
+    for (var i = 0; i < TECHS.length; i++) { if (TECHS[i].id === id) return true; }
+    return false;
+  }
+
+  function route() {
+    var h = location.hash.replace(/^#\/?/, "");
+    var parts = h.split("/");
+    var name = parts[0] || "atlas";
+    var techId = null;
+    if (name === "technique") {
+      techId = parts[1];
+      if (!techId || !hasTech(techId)) { location.hash = "#/library"; return; }
+    } else if (!views[name]) {
+      name = "atlas";
+    }
+    // show the view BEFORE measuring path geometry â€” getTotalLength and the
+    // draw-on transition both need the section out of display:none
+    Object.keys(views).forEach(function (k) {
+      document.getElementById(views[k]).classList.toggle("on", k === name);
+    });
+    if (techId) renderTechnique(techId);
+    var navFor = (name === "technique") ? "library" : name;
+    Array.prototype.forEach.call(document.querySelectorAll("nav.main a"), function (a) {
+      a.classList.toggle("on", a.getAttribute("data-route") === navFor);
+    });
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", route);
+
+  /* ================= ATLAS ================= */
+  var atlas = document.getElementById("atlasvg");
+  var stRest = document.getElementById("st-rest"), stArou = document.getElementById("st-arou");
+
+  function setArousal(on) {
+    atlas.classList.toggle("aroused", on);
+    stRest.setAttribute("aria-pressed", String(!on));
+    stArou.setAttribute("aria-pressed", String(on));
+    atlas.setAttribute("aria-label", on
+      ? "Anatomical diagram of the clitoral complex in the aroused state: crura, bulbs and glans engorged and enlarged."
+      : "Anatomical diagram of the clitoral complex in the resting state, showing glans, body, crura and vestibular bulbs.");
+  }
+  stRest.addEventListener("click", function () { setArousal(false); });
+  stArou.addEventListener("click", function () { setArousal(true); });
+
+  var dKick = document.getElementById("d-kicker"), dName = document.getElementById("d-name"),
+      dHint = document.getElementById("d-hint"), dFields = document.getElementById("d-fields");
+
+  function selectPart(key) {
+    var p = PARTS[key];
+    if (!p) return;
+    ["glans", "body", "crus", "bulb"].forEach(function (k) { atlas.classList.remove("sel-" + k); });
+    atlas.classList.add("sel-" + key);
+    dKick.textContent = p.kicker;
+    dName.textContent = p.name;
+    dHint.hidden = true;
+    dFields.hidden = false;
+    document.getElementById("d-size").innerHTML = p.size;
+    document.getElementById("d-does").innerHTML = p.does;
+    document.getElementById("d-arou").innerHTML = p.arou;
+    document.getElementById("d-prac").innerHTML = p.prac;
+  }
+
+  Array.prototype.forEach.call(atlas.querySelectorAll(".hotspot"), function (g) {
+    var key = g.getAttribute("data-part");
+    g.addEventListener("click", function () { selectPart(key); });
+    g.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectPart(key); }
+    });
+  });
+
+  /* ================= LIBRARY ================= */
+  var libCards = document.getElementById("lib-cards"),
+      libCount = document.getElementById("lib-count"),
+      filter = "all";
+
+  function thumb(d) {
+    return '<svg class="thumb" viewBox="0 0 340 330" width="150" height="146" aria-hidden="true">' +
+      '<path class="t-field" d="M 170 64 C 222 60, 258 100, 260 152 C 262 206, 224 250, 170 252 ' +
+      'C 116 254, 78 208, 80 152 C 82 100, 118 68, 170 64 Z"/>' +
+      '<path class="t-path" d="' + d + '" stroke-width="5"/></svg>';
+  }
+
+  function renderLibrary() {
+    var list = TECHS.filter(function (t) { return filter === "all" || t.r === filter; });
+    libCards.innerHTML = list.map(function (t) {
+      var i = TECHS.indexOf(t) + 1;
+      return '<button class="card" data-id="' + t.id + '">' +
+        '<div class="card-top"><span class="num">' + (i < 10 ? "0" + i : i) + '</span>' +
+        '<span class="region">' + REGION_LABEL[t.r] + '</span></div>' +
+        thumb(t.d) +
+        '<div><h3>' + t.n + '</h3><p>' + t.sum + '</p></div></button>';
+    }).join("");
+    libCount.textContent = list.length + " of " + TECHS.length + " shown";
+  }
+
+  libCards.addEventListener("click", function (e) {
+    var c = e.target.closest(".card");
+    if (c) location.hash = "#/technique/" + c.getAttribute("data-id");
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function (b) {
+    b.addEventListener("click", function () {
+      filter = b.getAttribute("data-filter");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function (o) {
+        o.setAttribute("aria-pressed", String(o === b));
+      });
+      renderLibrary();
+    });
+  });
+
+  /* ================= TECHNIQUE PLAYER ================= */
+  var track = document.getElementById("track"), head = document.getElementById("head"),
+      halo = document.getElementById("halo"), pgauge = document.getElementById("pgauge"),
+      pOut = document.getElementById("p-out"), tOut = document.getElementById("t-out"),
+      live = document.getElementById("live-state"),
+      pressure = document.getElementById("pressure"), tempo = document.getElementById("tempo"),
+      notefield = document.getElementById("notefield");
+
+  var currentTech = null, len = 0, progress = 0, last = null, closed = true;
+
+  function renderTechnique(id) {
+    var t = null;
+    for (var i = 0; i < TECHS.length; i++) { if (TECHS[i].id === id) { t = TECHS[i]; break; } }
+    if (!t) return false;
+    currentTech = t;
+
+    document.getElementById("t-kicker").textContent =
+      REGION_LABEL[t.r] + " Â· Technique " + (TECHS.indexOf(t) + 1) + " of " + TECHS.length;
+    document.getElementById("t-name").textContent = t.n;
+    document.getElementById("t-sum").textContent = t.sum;
+    document.getElementById("t-anat").textContent = t.anat;
+    document.getElementById("t-mistake").textContent = t.mis;
+    document.getElementById("t-fix").innerHTML =
+      t.fix.map(function (f) { return "<li>" + f + "</li>"; }).join("");
+
+    pressure.value = t.p;
+    tempo.value = t.t;
+    track.setAttribute("d", t.d);
+    closed = /z\s*$/i.test(t.d.trim());
+    len = track.getTotalLength();
+    progress = 0;
+
+    if (!reduced) {
+      track.style.transition = "none";
+      track.style.strokeDasharray = len + " " + len;
+      track.style.strokeDashoffset = len;
+      void track.getBoundingClientRect();
+      track.style.transition = "stroke-dashoffset .7s cubic-bezier(.3,.7,.3,1)";
+      track.style.strokeDashoffset = "0";
+    }
+    sync();
+    return true;
+  }
+
+  function sync() {
+    if (!currentTech) return;
+    var p = +pressure.value, t = +tempo.value;
+    track.setAttribute("stroke-width", String(1.8 + p * 1.5));
+    halo.setAttribute("r", String(8 + p * 3.2));
+    head.setAttribute("r", String(3.5 + p * 0.9));
+
+    var x = 34 + (p - 1) * 68;
+    var mark = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    mark.setAttribute("d", "M " + x + " 267 L " + x + " 285");
+    mark.setAttribute("style", "stroke:var(--carmine);stroke-width:2.5");
+    pgauge.textContent = "";
+    pgauge.appendChild(mark);
+
+    pOut.textContent = p + " / 5";
+    tOut.textContent = t + " / min";
+    live.textContent = currentTech.n + " Â· P" + p + " Â· " + t + " / min";
+    notefield.setAttribute("aria-label",
+      "Notation diagram: " + currentTech.n.toLowerCase() + " at pressure " + p +
+      " of 5, " + t + " cycles per minute.");
+  }
+
+  function frame(ts) {
+    if (last === null) last = ts;
+    var dt = Math.min((ts - last) / 1000, 0.05);
+    last = ts;
+    if (len > 0 && document.getElementById("v-technique").classList.contains("on")) {
+      progress = (progress + dt * (+tempo.value / 60)) % 1;
+      // open paths ping-pong so the head doesn't teleport back to the start
+      var u = closed ? progress : (progress < 0.5 ? progress * 2 : (1 - progress) * 2);
+      var pt = track.getPointAtLength(u * len);
+      head.setAttribute("cx", pt.x); head.setAttribute("cy", pt.y);
+      halo.setAttribute("cx", pt.x); halo.setAttribute("cy", pt.y);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  pressure.addEventListener("input", sync);
+  tempo.addEventListener("input", sync);
+
+  /* ================= OVERLAP TOOL ================= */
+  var ITEMS = [
+    { t: "A longer, slower start", s: "More time before anything focused begins" },
+    { t: "Receiving oral sex", s: "" },
+    { t: "Giving oral sex", s: "" },
+    { t: "Hands only, start to finish", s: "No penetration at all" },
+    { t: "Using a vibrator together", s: "" },
+    { t: "Saying what you want out loud", s: "In the moment, not beforehand" },
+    { t: "Being told what to do", s: "Direction from the other person" },
+    { t: "Sex with no orgasm as the goal", s: "Where finishing isn't the point" },
+    { t: "Being watched", s: "One of you touching yourself while the other watches" },
+    { t: "Trying an unfamiliar position", s: "" },
+    { t: "Daytime rather than night", s: "" },
+    { t: "Talking about it afterwards", s: "A short, honest debrief" }
+  ];
+
+  var answersA = {}, answersB = {}, phase = "A";
+  var steps = { intro: "s-intro", answer: "s-answer", handoff: "s-handoff", results: "s-results" };
+
+  function showStep(k) {
+    Object.keys(steps).forEach(function (s) {
+      document.getElementById(steps[s]).classList.toggle("on", s === k);
+    });
+  }
+
+  function renderQuestions() {
+    var store = phase === "A" ? answersA : answersB;
+    document.getElementById("who").textContent = phase === "A" ? "First person" : "Second person";
+    document.getElementById("qlist").innerHTML = ITEMS.map(function (item, i) {
+      var v = store[i];
+      return '<div class="qcard"><div><h3>' + item.t + '</h3>' +
+        (item.s ? '<p>' + item.s + '</p>' : '') + '</div>' +
+        '<div class="choices" role="group" aria-label="' + item.t + '">' +
+        ['yes', 'curious', 'no'].map(function (opt) {
+          return '<button data-q="' + i + '" data-v="' + opt + '" aria-pressed="' +
+            (v === opt) + '">' + opt + '</button>';
+        }).join("") + '</div></div>';
+    }).join("");
+    updateProgress();
+  }
+
+  function updateProgress() {
+    var store = phase === "A" ? answersA : answersB;
+    var n = Object.keys(store).length;
+    document.getElementById("counted").textContent = n + " of " + ITEMS.length;
+    document.getElementById("bar").style.width = (n / ITEMS.length * 100) + "%";
+    var btn = document.getElementById("ov-next");
+    var done = n === ITEMS.length;
+    btn.disabled = !done;
+    btn.textContent = done
+      ? (phase === "A" ? "Done â€” hide my answers" : "Show what we both said yes to")
+      : "Answer all twelve to continue";
+  }
+
+  document.getElementById("qlist").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-q]");
+    if (!b) return;
+    var store = phase === "A" ? answersA : answersB;
+    var q = +b.getAttribute("data-q");
+    store[q] = b.getAttribute("data-v");
+    Array.prototype.forEach.call(b.parentNode.children, function (o) {
+      o.setAttribute("aria-pressed", String(o === b));
+    });
+    updateProgress();
+  });
+
+  document.getElementById("ov-start").addEventListener("click", function () {
+    phase = "A"; answersA = {}; renderQuestions(); showStep("answer");
+  });
+  document.getElementById("ov-next").addEventListener("click", function () {
+    if (phase === "A") { showStep("handoff"); }
+    else { renderResults(); showStep("results"); }
+  });
+  document.getElementById("ov-second").addEventListener("click", function () {
+    phase = "B"; answersB = {}; renderQuestions(); showStep("answer");
+  });
+  document.getElementById("ov-reset").addEventListener("click", function () {
+    answersA = {}; answersB = {}; phase = "A"; showStep("intro");
+  });
+
+  function renderResults() {
+    var matches = [];
+    ITEMS.forEach(function (item, i) {
+      var a = answersA[i], b = answersB[i];
+      // a single "no" removes the item entirely â€” it is never shown, counted, or hinted at
+      if (a === "no" || b === "no") return;
+      var both = (a === "yes" && b === "yes");
+      matches.push({ item: item, both: both });
+    });
+    matches.sort(function (x, y) { return (y.both ? 1 : 0) - (x.both ? 1 : 0); });
+
+    var head = document.getElementById("res-head"), sub = document.getElementById("res-sub"),
+        list = document.getElementById("res-list");
+
+    if (!matches.length) {
+      head.textContent = "No overlap this time.";
+      sub.textContent = "That is a real result, not a failure of the tool.";
+      list.innerHTML = '<div class="empty">Nothing here matched, and neither of you will be told what the other declined. ' +
+        'Twelve items is a small list â€” the useful next step is usually a conversation about what is missing from it, ' +
+        'not another pass.</div>';
+      return;
+    }
+    head.textContent = matches.length + (matches.length === 1 ? " thing to work with." : " things to work with.");
+    sub.textContent = "Everything either of you declined has been removed. Neither of you can tell from this list which items those were, or who declined them.";
+    list.innerHTML = matches.map(function (m) {
+      return '<div class="match"><div><h3>' + m.item.t + '</h3>' +
+        (m.item.s ? '<p style="font-size:14px;color:var(--ink-3);margin-top:3px">' + m.item.s + '</p>' : '') +
+        '</div><span class="verdict' + (m.both ? '' : ' curious') + '">' +
+        (m.both ? 'Both yes' : 'Worth discussing') + '</span></div>';
+    }).join("");
+  }
+
+  /* ================= INIT ================= */
+  renderLibrary();
+  setArousal(false);
+  route();
+  if (!reduced) requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
+

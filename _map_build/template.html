@@ -1,0 +1,1261 @@
+<title>Knuckles Basin Atlas</title>
+<script>
+/* Runs before layout. Without this a phone lays the page out at 980 px and the
+   responsive rules never fire; the host page may already supply one. */
+if (!document.querySelector('meta[name=viewport]')){
+  var m = document.createElement("meta");
+  m.name = "viewport";
+  m.content = "width=device-width, initial-scale=1, viewport-fit=cover";
+  document.head.appendChild(m);
+}
+</script>
+<style>
+__FONTS__
+/* ---------------------------------------------------------------------------
+   Thushan Chamika brand: Deep Ocean Blue leads, Poppins headings, Inter body,
+   off-white paper ground, one accent motif (the contour line). Committed to a
+   single light treatment -- a paper map -- so every colour is painted here.
+   --------------------------------------------------------------------------- */
+:root{
+  --ocean:#14416B;      /* primary */
+  --water:#1E78B0;      /* secondary, hydrology */
+  --green:#2E6B4F;      /* secondary, nature */
+  --paper:#F6F7F4;      /* background */
+  --paper2:#F4F5F1;
+  --ink:#1C2A33;        /* body text */
+  --mid:#2E6FA3;
+  --pale:#9FC4E6;
+  --rule:#C9CEC7;       /* contour grey */
+  --ink-60:#5A6B75;
+  --ink-40:#8894A0;
+  --panel:rgba(246,247,244,.95);
+  --b1:#14416B; --b2:#1E78B0; --b3:#9FC4E6; --b4:#2E6B4F;
+  --b5:#7FA86B; --b6:#7B6BA8; --b7:#6F8391;
+  --head:"Poppins","Segoe UI",system-ui,sans-serif;
+  --body:"Inter","Segoe UI",system-ui,sans-serif;
+  --r:4px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--body);font-size:13px;line-height:1.5;
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas.drag{cursor:grabbing}
+
+.panel{
+  position:fixed;z-index:20;background:var(--panel);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border:1px solid var(--rule);border-radius:var(--r);
+}
+.eyebrow{
+  font-family:var(--body);font-size:9.5px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-40);
+}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- left rail: masthead + register ---- */
+#rail{left:16px;top:16px;bottom:16px;width:318px;display:flex;flex-direction:column;overflow:hidden}
+#masthead{padding:16px 18px 14px;border-bottom:1px solid var(--rule);flex:0 0 auto;position:relative;overflow:hidden}
+#contourArt{position:absolute;right:-30px;top:-16px;width:190px;height:120px;opacity:.5;pointer-events:none}
+#brandRow{display:flex;align-items:center;gap:9px;position:relative}
+#mark{width:19px;height:20px;flex:0 0 auto}
+#brandRow .who{font-family:var(--head);font-weight:500;font-size:11.5px;color:var(--ocean);letter-spacing:.01em}
+#masthead h1{
+  margin:9px 0 0;font-family:var(--head);font-weight:600;font-size:21px;line-height:1.15;
+  letter-spacing:-.01em;color:var(--ocean);text-wrap:balance;position:relative;
+}
+#masthead .sub{margin-top:7px;color:var(--ink-60);font-size:11.5px;line-height:1.55;position:relative}
+#masthead .sub b{color:var(--ink);font-weight:600}
+
+#search{flex:0 0 auto;padding:11px 14px;border-bottom:1px solid var(--rule)}
+#search input{
+  width:100%;padding:7px 10px;background:#fff;color:var(--ink);
+  border:1px solid var(--rule);border-radius:var(--r);font-family:var(--body);font-size:12.5px;
+}
+#search input::placeholder{color:var(--ink-40)}
+#search input:focus{outline:2px solid var(--water);outline-offset:-1px;border-color:var(--water)}
+
+#register{overflow-y:auto;overscroll-behavior:contain;flex:1 1 auto;padding-bottom:10px}
+#register::-webkit-scrollbar{width:9px}
+#register::-webkit-scrollbar-thumb{background:var(--rule);border-radius:9px}
+#register::-webkit-scrollbar-track{background:transparent}
+
+.sec{border-bottom:1px solid var(--rule)}
+.sec>summary{list-style:none;cursor:pointer;padding:10px 15px;display:flex;align-items:baseline;gap:8px;user-select:none}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary:hover{background:rgba(30,120,176,.06)}
+.sec>summary:focus-visible{outline:2px solid var(--water);outline-offset:-2px}
+.sec .title{font-family:var(--head);font-weight:500;font-size:12.5px;color:var(--ocean);flex:1}
+.sec .count{font-size:10.5px;color:var(--ink-40);font-variant-numeric:tabular-nums}
+.sec .chev{color:var(--ink-40);font-size:9px;transition:transform .15s}
+.sec[open] .chev{transform:rotate(90deg)}
+.ordering{padding:0 15px 9px;color:var(--ink-40);font-size:10.5px;line-height:1.45}
+
+.row{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;
+  padding:4px 15px 4px 13px;cursor:pointer;border-left:2px solid transparent}
+.row:hover{background:rgba(30,120,176,.07)}
+.row:focus-visible{outline:2px solid var(--water);outline-offset:-2px}
+.row.on{background:rgba(30,120,176,.12);border-left-color:var(--ocean)}
+.row .k{font-size:10px;font-weight:600;font-variant-numeric:tabular-nums;text-align:center;
+  padding:2px 0;border-radius:2px;color:#fff}
+.row .nm{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .v{font-size:10.5px;color:var(--ink-40);font-variant-numeric:tabular-nums}
+.k.peak{background:var(--ocean)}
+.k.fall{background:var(--water)}
+.k.att{background:var(--green)}
+.k.vil{background:#7C8A94}
+.k.riv{background:var(--mid)}
+.swatch{width:24px;height:12px;border-radius:2px;border:1px solid rgba(28,42,51,.25)}
+
+/* ---- right controls ---- */
+#controls{right:16px;top:16px;width:252px;max-height:calc(100% - 32px);overflow-y:auto;padding-bottom:8px}
+#controls::-webkit-scrollbar{width:9px}
+#controls::-webkit-scrollbar-thumb{background:var(--rule);border-radius:9px}
+.cgroup{padding:11px 15px 7px}
+.cgroup+.cgroup{border-top:1px solid var(--rule)}
+.cgroup>.eyebrow{display:block;margin-bottom:9px}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--rule);
+  border-radius:var(--r);overflow:hidden}
+.seg button{font-family:var(--body);font-size:11px;padding:6px 2px;border:0;background:#fff;
+  color:var(--ink-60);cursor:pointer;border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--ocean);color:#fff;font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--water);outline-offset:-2px}
+.chk{display:flex;align-items:center;gap:9px;padding:3px 0;cursor:pointer;font-size:12px}
+.chk input{appearance:none;width:14px;height:14px;flex:0 0 auto;border:1px solid var(--ink-40);
+  border-radius:2px;background:#fff;position:relative;cursor:pointer;margin:0}
+.chk input:checked{background:var(--ocean);border-color:var(--ocean)}
+.chk input:checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.chk input:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.chk .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.chk .bar{width:14px;height:3px;border-radius:2px;flex:0 0 auto}
+.sl{padding:7px 0 4px}
+.sl .lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.sl .lab span:first-child{font-size:11.5px;color:var(--ink-60)}
+.sl .lab .num{font-size:11px;color:var(--ocean);font-weight:600}
+input[type=range]{width:100%;appearance:none;height:3px;background:var(--rule);border-radius:3px;margin:0}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--ocean);border:2px solid var(--paper);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--ocean);
+  border:2px solid var(--paper);cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--water);outline-offset:3px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:5px}
+button.b{font-family:var(--body);font-size:11.5px;padding:6px 4px;color:var(--ink);
+  background:#fff;border:1px solid var(--rule);border-radius:var(--r);cursor:pointer}
+button.b:hover{border-color:var(--water);color:var(--ocean)}
+button.b[aria-pressed=true]{background:var(--ocean);color:#fff;border-color:var(--ocean)}
+button.b:focus-visible{outline:2px solid var(--water);outline-offset:1px}
+
+/* ---- readout, compass, credits ---- */
+#readout{left:350px;bottom:16px;padding:8px 13px;display:flex;gap:20px;align-items:center;pointer-events:none}
+#readout .f{display:flex;flex-direction:column;gap:1px}
+#readout .f .v{font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500}
+#compass{right:16px;bottom:16px;padding:9px 13px;display:flex;align-items:center;gap:14px}
+#rose{width:32px;height:32px;flex:0 0 auto}
+#scalebar{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+#sbBar{height:5px;border:1px solid var(--ink-60);border-top:0;position:relative}
+#sbBar i{position:absolute;top:0;bottom:0;left:0;width:50%;background:var(--ink-60)}
+#credits{position:fixed;left:350px;bottom:78px;font-size:9.5px;color:var(--ink-60);z-index:19;max-width:430px;
+  background:rgba(246,247,244,.82);padding:3px 8px;border-radius:var(--r);line-height:1.5}
+
+/* ---- map labels ---- */
+#labels{position:fixed;inset:0;z-index:10;pointer-events:none;overflow:hidden}
+.mk{position:absolute;left:0;top:0;will-change:transform;pointer-events:none}
+.mk>*{pointer-events:auto;cursor:pointer}
+.badge{display:block;min-width:19px;height:19px;line-height:17px;padding:0 2px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.95);font-family:var(--body);font-size:10.5px;font-weight:600;
+  text-align:center;color:#fff;font-variant-numeric:tabular-nums;transform:translate(-50%,-50%)}
+.mk.peak .badge{background:var(--ocean)}
+.mk.fall .badge{background:var(--water)}
+.mk.att  .badge{background:var(--green)}
+.mk.on .badge{outline:2px solid var(--ink);outline-offset:1px}
+.vilname{transform:translate(-50%,-50%);display:flex;align-items:center;gap:5px;font-size:11px;
+  font-weight:500;color:#16222B;white-space:nowrap;
+  text-shadow:0 0 3px #F6F7F4,0 0 6px #F6F7F4,0 0 9px #F6F7F4,0 1px 2px rgba(246,247,244,.9)}
+.vilname i{width:4px;height:4px;border-radius:50%;background:#2A3942;
+  box-shadow:0 0 0 1.5px rgba(246,247,244,.9);flex:0 0 auto}
+.vilname.big{font-size:12.5px;font-weight:600}
+.mk.on .vilname{color:var(--ocean)}
+.rivname{transform:translate(-50%,-50%);font-family:var(--head);font-weight:500;font-style:italic;
+  font-size:11.5px;color:#175A87;white-space:nowrap;
+  text-shadow:0 0 3px #F6F7F4,0 0 6px #F6F7F4,0 0 9px #F6F7F4}
+
+#tip{position:fixed;z-index:30;pointer-events:none;padding:6px 10px;background:#fff;
+  border:1px solid var(--rule);border-radius:var(--r);font-size:11.5px;white-space:nowrap;
+  opacity:0;transition:opacity .1s;transform:translate(-50%,-100%) translateY(-12px)}
+#tip.show{opacity:1}
+#tip .t{color:var(--ink-40);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+#tip .h{font-family:var(--head);font-weight:500;color:var(--ocean);font-size:12.5px}
+
+#boot{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;gap:14px;
+  align-items:center;justify-content:center;background:var(--paper);color:var(--ink-60);
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;transition:opacity .45s}
+#boot.gone{opacity:0;pointer-events:none}
+#boot svg{width:38px;height:40px}
+
+#panelToggle{display:none}
+@media (max-width:900px){
+  #rail{left:8px;right:8px;top:8px;bottom:auto;width:auto;max-height:60%}
+  #controls{right:8px;left:8px;top:auto;bottom:98px;width:auto;max-height:56%}
+  /* visibility is not animated, so a hidden panel stays hidden even if the
+     transition never runs; the 0.22s delay lets the fade finish first */
+  #rail,#controls{transition:transform .22s,opacity .22s,visibility 0s;visibility:visible}
+  body.hideRail #rail,body.hideCtl #controls{
+    opacity:0;pointer-events:none;visibility:hidden;
+    transition:transform .22s,opacity .22s,visibility 0s .22s}
+  body.hideRail #rail{transform:translateY(-115%)}
+  body.hideCtl #controls{transform:translateY(140%)}
+  #readout{left:8px;right:8px;bottom:50px;justify-content:space-around;gap:8px}
+  #credits{display:none}
+  #compass{right:8px;bottom:8px;padding:6px 9px}
+  #panelToggle{display:flex;gap:6px;position:fixed;left:8px;bottom:8px;z-index:25}
+  #panelToggle button{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    padding:8px 12px;background:var(--panel);color:var(--ocean);border:1px solid var(--rule);
+    border-radius:var(--r);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<canvas id="gl"></canvas>
+<div id="labels"></div>
+
+<aside id="rail" class="panel">
+  <div id="masthead">
+    <svg id="contourArt" viewBox="0 0 190 120" fill="none" stroke="#C9CEC7" stroke-width="1.1" aria-hidden="true">
+      <path d="M-6 96 C 30 74, 52 92, 78 70 S 128 44, 176 58"></path>
+      <path d="M-6 78 C 32 56, 56 74, 82 52 S 130 26, 176 40"></path>
+      <path d="M2 60 C 36 40, 60 56, 86 34 S 132 10, 178 22"></path>
+      <path d="M14 42 C 44 26, 66 38, 92 18 S 134 -2, 180 6"></path>
+    </svg>
+    <div id="brandRow">
+      <svg id="mark" viewBox="0 0 80 84" aria-hidden="true">
+        <path d="M8 52 L28 15 L40 37 L48 22 L72 52 Z" fill="#14416B"></path>
+        <path d="M21 30 L28 15 L35 30 L31.5 27 L28 32 L24.5 27 Z" fill="#F6F7F4"></path>
+        <path d="M2 64 q9 -8 18 0 t18 0 t18 0 t18 0" stroke="#1E78B0" stroke-width="7"
+              stroke-linecap="round" fill="none"></path>
+        <path d="M2 76 q9 -8 18 0 t18 0 t18 0 t18 0" stroke="#9FC4E6" stroke-width="7"
+              stroke-linecap="round" fill="none"></path>
+      </svg>
+      <span class="who">Thushan Chamika</span>
+    </div>
+    <h1>Knuckles Basin Atlas</h1>
+    <div class="sub">
+      <b>762 km&sup2;</b> in seven catchments, on Copernicus GLO&#8209;30 terrain.
+      Map numbers key to the register below.
+    </div>
+  </div>
+  <div id="search"><input id="q" type="search" placeholder="Search peaks, villages, rivers&hellip;" aria-label="Search the register"></div>
+  <div id="register"></div>
+</aside>
+
+<aside id="controls" class="panel">
+  <div class="cgroup">
+    <span class="eyebrow">Base</span>
+    <div class="seg" role="group" aria-label="Basemap">
+      <button id="bmSat" aria-pressed="true">Satellite</button>
+      <button id="bmMix" aria-pressed="false">Blend</button>
+      <button id="bmDem" aria-pressed="false">Elevation</button>
+    </div>
+    <div class="sl">
+      <div class="lab"><span>Relief shading</span><span class="num" id="vShade">60%</span></div>
+      <input type="range" id="sShade" min="0" max="100" value="60" aria-label="Relief shading">
+    </div>
+    <div class="sl">
+      <div class="lab"><span>Vertical exaggeration</span><span class="num" id="vZ">2.0&times;</span></div>
+      <input type="range" id="sZ" min="10" max="45" value="20" aria-label="Vertical exaggeration">
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <span class="eyebrow">Basins</span>
+    <div class="sl">
+      <div class="lab"><span>Fill opacity</span><span class="num" id="vOpac">34%</span></div>
+      <input type="range" id="sOpac" min="0" max="100" value="34" aria-label="Basin fill opacity">
+    </div>
+    <label class="chk"><input type="checkbox" id="cBord" checked><span>Divides</span></label>
+    <label class="chk"><input type="checkbox" id="cDim" checked><span>Fade land outside</span></label>
+    <label class="chk"><input type="checkbox" id="cCont"><span>Contours, 200&nbsp;m</span></label>
+  </div>
+
+  <div class="cgroup">
+    <span class="eyebrow">Network</span>
+    <div id="netChecks"></div>
+    <div class="sl">
+      <div class="lab"><span>Line strength</span><span class="num" id="vLine">85%</span></div>
+      <input type="range" id="sLine" min="0" max="100" value="85" aria-label="Overlay line strength">
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <span class="eyebrow">Labels</span>
+    <div id="layerChecks"></div>
+  </div>
+
+  <div class="cgroup">
+    <span class="eyebrow">View</span>
+    <div class="btns">
+      <button class="b" id="bReset">Reset</button>
+      <button class="b" id="bTop">Plan view</button>
+      <button class="b" id="bSpin" aria-pressed="false">Orbit</button>
+      <button class="b" id="bClear">Show all</button>
+    </div>
+  </div>
+</aside>
+
+<div id="readout" class="panel">
+  <div class="f"><span class="eyebrow">Elevation</span><span class="v" id="rElev">&mdash;</span></div>
+  <div class="f"><span class="eyebrow">Basin</span><span class="v" id="rBasin">&mdash;</span></div>
+  <div class="f"><span class="eyebrow">Easting / Northing</span><span class="v" id="rEN">&mdash;</span></div>
+</div>
+
+<div id="credits">
+  Terrain Copernicus GLO&#8209;30 &middot; imagery Esri, Maxar, Earthstar Geographics &middot;
+  stream network L1/L3/L4 from the project&rsquo;s own layers &middot; roads, villages and river names &copy; OpenStreetMap contributors
+</div>
+
+<div id="compass" class="panel">
+  <svg id="rose" viewBox="0 0 40 40" aria-label="North arrow">
+    <g id="roseG">
+      <circle cx="20" cy="20" r="15" fill="none" stroke="#C9CEC7" stroke-width="1"></circle>
+      <path d="M20 6 L24 21 L20 18 L16 21 Z" fill="#14416B"></path>
+      <path d="M20 34 L16 19 L20 22 L24 19 Z" fill="#C9CEC7"></path>
+    </g>
+    <text x="20" y="4.4" text-anchor="middle" fill="#5A6B75" font-size="6.5"
+          font-family="Inter,sans-serif" font-weight="600">N</text>
+  </svg>
+  <div id="scalebar">
+    <span class="eyebrow" id="sbLabel">10 km</span>
+    <div id="sbBar" style="width:96px"><i></i></div>
+  </div>
+</div>
+
+<div id="panelToggle">
+  <button id="tRail">Register</button>
+  <button id="tCtl">Layers</button>
+</div>
+
+<div id="tip"></div>
+<div id="boot">
+  <svg viewBox="0 0 80 84" aria-hidden="true">
+    <path d="M8 52 L28 15 L40 37 L48 22 L72 52 Z" fill="#14416B"></path>
+    <path d="M21 30 L28 15 L35 30 L31.5 27 L28 32 L24.5 27 Z" fill="#F6F7F4"></path>
+    <path d="M2 64 q9 -8 18 0 t18 0 t18 0 t18 0" stroke="#1E78B0" stroke-width="7" stroke-linecap="round" fill="none"></path>
+    <path d="M2 76 q9 -8 18 0 t18 0 t18 0 t18 0" stroke="#9FC4E6" stroke-width="7" stroke-linecap="round" fill="none"></path>
+  </svg>
+  <span>Reading terrain</span>
+</div>
+
+<img id="satImg" alt="" style="display:none" src="__SAT__">>
+<img id="ovlImg" alt="" style="display:none" src="__OVL__">>
+<img id="basImg" alt="" style="display:none" src="__BAS__">>
+<script id="payload" type="application/json">__DATA__</script>
+<script>
+"use strict";
+(function(){
+const D = JSON.parse(document.getElementById("payload").textContent);
+const G = D.grid, W = G.w, H = G.h, CELL = G.cell;
+
+function unb64(s){
+  const bin = atob(s), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+const elevBytes = unb64(D.elev);
+const ELEV = new Int16Array(elevBytes.buffer, 0, W * H);
+const IDS  = unb64(D.ids);                       // low 3 bits basin, bit 3 divide
+const ELEVF = new Float32Array(W * H);
+for (let i = 0; i < ELEV.length; i++) ELEVF[i] = ELEV[i];
+
+/* mesh vertices sit at cell centres, so terrain, imagery and points all align */
+const EXT_X = W * CELL, EXT_Z = H * CELL;
+const CX = EXT_X / 2, CZ = EXT_Z / 2;
+
+/* Seven catchments need seven separable fills, which is more than the brand's
+   "three colours" rule covers -- that rule governs marketing layouts, not a
+   categorical map key. These are the brand hues plus its sanctioned tints,
+   separated by lightness: dark/mid/pale blue, dark/light green, violet, grey. */
+const BCOL = [[0,0,0],
+  [0x14,0x41,0x6B],[0x2E,0x8B,0xC4],[0x9F,0xC4,0xE6],[0x2E,0x6B,0x4F],
+  [0x8F,0xBF,0x7A],[0x7B,0x6B,0xA8],[0x6F,0x83,0x91]];
+const BCSS = BCOL.map(c => "rgb(" + c.join(",") + ")");
+
+const cv = document.getElementById("gl");
+const gl = cv.getContext("webgl2", {antialias:true, alpha:false, powerPreference:"high-performance"});
+if (!gl){
+  document.getElementById("boot").innerHTML =
+    "<span>This map needs WebGL 2 &mdash; try a current Chrome, Edge, Firefox or Safari.</span>";
+  return;
+}
+
+const VS = `#version 300 es
+precision highp float;
+precision highp int;
+uniform highp sampler2D uElev;
+uniform vec2  uGrid;
+uniform float uCell, uZScale;
+uniform vec3  uCenter;
+uniform mat4  uMVP;
+out vec2  vG;
+out float vZ;
+out vec3  vW;
+const ivec2 OFF[6] = ivec2[6](ivec2(0,0),ivec2(1,0),ivec2(0,1),ivec2(1,0),ivec2(1,1),ivec2(0,1));
+void main(){
+  int q  = gl_VertexID / 6;
+  int qw = int(uGrid.x) - 1;
+  ivec2 g = ivec2(q % qw, q / qw) + OFF[gl_VertexID % 6];
+  float z = texelFetch(uElev, g, 0).r;
+  vG = vec2(g);
+  vZ = z;
+  vec3 p = vec3((float(g.x) + 0.5) * uCell, z * uZScale, (float(g.y) + 0.5) * uCell) - uCenter;
+  vW = p;
+  gl_Position = uMVP * vec4(p, 1.0);
+}`;
+
+const FS = `#version 300 es
+precision highp float;
+precision highp int;
+uniform highp sampler2D  uElev;
+uniform highp sampler2D  uBas;   /* basin id * 32, at overlay resolution */
+uniform highp sampler2D  uSat;
+uniform highp sampler2D  uOvl;
+uniform vec2  uGrid;
+uniform float uCell, uZScale, uOpac, uDim, uContour, uBorder;
+uniform float uSatMix, uShade, uLine;
+uniform vec4  uNet;              // roads, streams, water, (spare) toggles
+uniform int   uSel;
+uniform vec3  uEye, uFog;
+uniform vec3  uPal[8];
+in vec2  vG;
+in float vZ;
+in vec3  vW;
+out vec4 frag;
+
+/* Neutral contour-grey ramp, low ground to off-white summits. Deliberately
+   desaturated: the basin tints carry the colour, so a green base would turn
+   the blue catchments teal. */
+vec3 hyps(float h){
+  vec3 c0=vec3(.404,.463,.447), c1=vec3(.514,.565,.541), c2=vec3(.627,.667,.635),
+       c3=vec3(.741,.769,.735), c4=vec3(.859,.875,.847), c5=vec3(.969,.973,.961);
+  float t=clamp((h-60.)/1830.,0.,1.)*5.;
+  if(t<1.) return mix(c0,c1,t);
+  if(t<2.) return mix(c1,c2,t-1.);
+  if(t<3.) return mix(c2,c3,t-2.);
+  if(t<4.) return mix(c3,c4,t-3.);
+  return mix(c4,c5,t-4.);
+}
+float el(ivec2 g){
+  g = clamp(g, ivec2(0), ivec2(uGrid) - 1);
+  return texelFetch(uElev, g, 0).r;
+}
+void main(){
+  ivec2 g = ivec2(vG);
+  vec2 uv = (vG + 0.5) / uGrid;
+
+  float eL=el(g+ivec2(-1,0)), eR=el(g+ivec2(1,0));
+  float eN=el(g+ivec2(0,-1)), eS=el(g+ivec2(0,1));
+  vec3 n = normalize(vec3(-(eR-eL)*uZScale, 2.0*uCell, -(eS-eN)*uZScale));
+  vec3 L = normalize(vec3(-0.55, 0.68, -0.49));
+  float key = max(dot(n, L), 0.0);
+  float sky = 0.5 + 0.5 * n.y;
+
+  vec3 dem = hyps(vZ);
+  /* Knuckles forest reads very dark in imagery; lift it so tints stay legible */
+  vec3 sat = texture(uSat, uv).rgb;
+  sat = clamp(sat * 1.32 + 0.05, 0.0, 1.0);
+  sat = mix(vec3(dot(sat, vec3(.299,.587,.114))), sat, 0.86);
+  vec3 base = mix(dem, sat, uSatMix);
+
+  /* one shading model over either base: soft key light plus a paper-white fill */
+  float shade = mix(1.0, 0.52 + 0.66 * key + 0.12 * sky, uShade);
+  vec3 col = base * shade;
+
+  if (uContour > 0.5){
+    float s = vZ / 200.0;
+    float d = fwidth(s) * 1.9 + 1e-4;
+    float line = smoothstep(0.0, d, min(fract(s), 1.0 - fract(s)));
+    col = mix(col * 0.60, col, line);
+  }
+
+  int b = int(floor(texture(uBas, uv).r * 255.0 / 32.0 + 0.5));
+  float act = (uSel == 0 || uSel == b) ? 1.0 : 0.0;
+  if (b > 0){
+    /* Tint by hue rather than by mixing pigments. The base is first pulled toward
+       its own luminance -- otherwise a blue catchment over green forest lands on
+       teal, which the brand rules out -- then the basin colour is modulated by
+       that luminance so relief still reads through the fill. */
+    float lum = dot(col, vec3(.299,.587,.114));
+    float a = clamp(uOpac * (0.32 + 0.68 * act) * 1.55, 0.0, 0.94);
+    vec3 neutral = mix(col, vec3(lum), 0.82 * a);
+    vec3 tint = uPal[b] * (0.58 + 0.92 * lum);
+    col = mix(neutral, tint, a);
+  } else if (uDim > 0.5){
+    col = mix(col, mix(vec3(dot(col, vec3(.299,.587,.114))), vec3(.965,.969,.957), 0.46), 0.60);
+  }
+
+  /* draped network: R roads, G stream ranks, B water bodies */
+  vec3 o = texture(uOvl, uv).rgb * uLine;
+  float wat = o.b * uNet.z;
+  col = mix(col, vec3(.086,.278,.451), wat * 0.88);
+  float st = o.g * uNet.y;
+  col = mix(col, mix(vec3(.376,.663,.855), vec3(.055,.298,.522), smoothstep(0.30, 0.95, o.g)), st);
+  float rd = o.r * uNet.x;
+  col = mix(col, mix(vec3(.42,.45,.47), vec3(.11,.16,.20), smoothstep(0.25, 0.90, o.r)), rd * 0.92);
+
+  if (uSel != 0 && b != uSel) col = mix(col, uFog, 0.50);
+
+  float dist = length(vW - uEye);
+  col = mix(col, uFog, clamp((dist - 44000.0) / 150000.0, 0.0, 0.55));
+  float ef = min(min(vG.x, uGrid.x - 1.0 - vG.x), min(vG.y, uGrid.y - 1.0 - vG.y));
+  col = mix(uFog, col, clamp(ef / 26.0, 0.0, 1.0));
+  frag = vec4(col, 1.0);
+}`;
+
+function sh(t, src){
+  const s = gl.createShader(t);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
+gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const U = {};
+for (const k of ["uElev","uBas","uSat","uOvl","uGrid","uCell","uZScale","uCenter","uMVP","uOpac",
+                 "uDim","uContour","uBorder","uSatMix","uShade","uLine","uNet","uSel","uEye",
+                 "uFog","uPal"])
+  U[k] = gl.getUniformLocation(prog, k);
+
+function mkTex(unit, filter){
+  const t = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter === gl.NEAREST ? gl.NEAREST : gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+const texE = mkTex(0, gl.NEAREST);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, W, H, 0, gl.RED, gl.FLOAT, ELEVF);
+const texB = mkTex(1, gl.NEAREST);
+gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0]));
+const texS = mkTex(2, gl.LINEAR_MIPMAP_LINEAR);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([210,214,205]));
+const texO = mkTex(3, gl.LINEAR_MIPMAP_LINEAR);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0]));
+
+function upload(img, tex, unit){
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE, img);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  const ext = gl.getExtension("EXT_texture_filter_anisotropic");
+  if (ext) gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT,
+                            Math.min(8, gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+}
+function whenReady(img, fn){
+  if (img.complete && img.naturalWidth) fn();
+  else img.addEventListener("load", fn, {once:true});
+}
+whenReady(document.getElementById("satImg"), () =>
+  upload(document.getElementById("satImg"), texS, 2));
+whenReady(document.getElementById("ovlImg"), () =>
+  upload(document.getElementById("ovlImg"), texO, 3));
+/* the basin mask must not be mipmapped or filtered: neighbouring ids would blend */
+whenReady(document.getElementById("basImg"), () => {
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, texB);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE,
+                document.getElementById("basImg"));
+});
+
+gl.uniform1i(U.uElev, 0); gl.uniform1i(U.uBas, 1);
+gl.uniform1i(U.uSat, 2);  gl.uniform1i(U.uOvl, 3);
+gl.uniform2f(U.uGrid, W, H);
+gl.uniform1f(U.uCell, CELL);
+gl.uniform3f(U.uCenter, CX, 0, CZ);
+gl.uniform3f(U.uFog, 0.925, 0.933, 0.918);
+gl.uniform3fv(U.uPal, new Float32Array(BCOL.flatMap(c => [c[0]/255, c[1]/255, c[2]/255])));
+gl.enable(gl.DEPTH_TEST);
+gl.clearColor(0.965, 0.969, 0.957, 1);
+const VCOUNT = (W - 1) * (H - 1) * 6;
+const terrainVAO = gl.createVertexArray();
+gl.bindVertexArray(terrainVAO);
+
+/* ---- matrices ---- */
+function persp(fovy, a, n, f){
+  const t = 1 / Math.tan(fovy / 2), d = 1 / (n - f);
+  return [t/a,0,0,0, 0,t,0,0, 0,0,(f+n)*d,-1, 0,0,2*f*n*d,0];
+}
+function lookAt(e, c, up){
+  let zx=e[0]-c[0], zy=e[1]-c[1], zz=e[2]-c[2];
+  let l=Math.hypot(zx,zy,zz); zx/=l; zy/=l; zz/=l;
+  let xx=up[1]*zz-up[2]*zy, xy=up[2]*zx-up[0]*zz, xz=up[0]*zy-up[1]*zx;
+  l=Math.hypot(xx,xy,xz)||1; xx/=l; xy/=l; xz/=l;
+  const yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+  return [xx,yx,zx,0, xy,yy,zy,0, xz,yz,zz,0,
+          -(xx*e[0]+xy*e[1]+xz*e[2]), -(yx*e[0]+yy*e[1]+yz*e[2]), -(zx*e[0]+zy*e[1]+zz*e[2]), 1];
+}
+function mul(a, b){
+  const o = new Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++){
+    let s = 0;
+    for (let k = 0; k < 4; k++) s += a[k*4+r] * b[c*4+k];
+    o[c*4+r] = s;
+  }
+  return o;
+}
+function invert(m){
+  const a=m, o=new Array(16);
+  const b00=a[0]*a[5]-a[1]*a[4], b01=a[0]*a[6]-a[2]*a[4], b02=a[0]*a[7]-a[3]*a[4],
+        b03=a[1]*a[6]-a[2]*a[5], b04=a[1]*a[7]-a[3]*a[5], b05=a[2]*a[7]-a[3]*a[6],
+        b06=a[8]*a[13]-a[9]*a[12], b07=a[8]*a[14]-a[10]*a[12], b08=a[8]*a[15]-a[11]*a[12],
+        b09=a[9]*a[14]-a[10]*a[13], b10=a[9]*a[15]-a[11]*a[13], b11=a[10]*a[15]-a[11]*a[14];
+  let det = b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;
+  if (!det) return null;
+  det = 1/det;
+  o[0]=(a[5]*b11-a[6]*b10+a[7]*b09)*det;   o[1]=(a[2]*b10-a[1]*b11-a[3]*b09)*det;
+  o[2]=(a[13]*b05-a[14]*b04+a[15]*b03)*det; o[3]=(a[10]*b04-a[9]*b05-a[11]*b03)*det;
+  o[4]=(a[6]*b08-a[4]*b11-a[7]*b07)*det;   o[5]=(a[0]*b11-a[2]*b08+a[3]*b07)*det;
+  o[6]=(a[14]*b02-a[12]*b05-a[15]*b01)*det; o[7]=(a[8]*b05-a[10]*b02+a[11]*b01)*det;
+  o[8]=(a[4]*b10-a[5]*b08+a[7]*b06)*det;   o[9]=(a[1]*b08-a[0]*b10-a[3]*b06)*det;
+  o[10]=(a[12]*b04-a[13]*b02+a[15]*b00)*det; o[11]=(a[9]*b02-a[8]*b04-a[11]*b00)*det;
+  o[12]=(a[5]*b07-a[4]*b09-a[6]*b06)*det;  o[13]=(a[0]*b09-a[1]*b07+a[2]*b06)*det;
+  o[14]=(a[13]*b01-a[12]*b03-a[14]*b00)*det; o[15]=(a[8]*b03-a[9]*b01+a[10]*b00)*det;
+  return o;
+}
+function xform(m, v){
+  const o = [0,0,0,0];
+  for (let r = 0; r < 4; r++) o[r] = m[r]*v[0] + m[4+r]*v[1] + m[8+r]*v[2] + m[12+r]*v[3];
+  return [o[0]/o[3], o[1]/o[3], o[2]/o[3]];
+}
+
+/* ---- terrain sampling ---- */
+function elevAt(gx, gy){
+  if (gx < 0 || gy < 0 || gx > W-1 || gy > H-1) return null;
+  const ix = Math.min(W-2, gx|0), iy = Math.min(H-2, gy|0);
+  const tx = gx-ix, ty = gy-iy, o = iy*W+ix;
+  return (ELEV[o]*(1-tx) + ELEV[o+1]*tx) * (1-ty) +
+         (ELEV[o+W]*(1-tx) + ELEV[o+W+1]*tx) * ty;
+}
+const worldY = (wx, wz) => elevAt((wx + CX) / CELL - 0.5, (wz + CZ) / CELL - 0.5);
+function basinAtWorld(wx, wz){
+  const gx = Math.floor((wx + CX) / CELL), gy = Math.floor((wz + CZ) / CELL);
+  if (gx < 0 || gy < 0 || gx >= W || gy >= H) return 0;
+  return IDS[gy*W+gx] & 7;
+}
+
+/* ---- basin divides, drawn as real lines off the source rings ----
+   The rings carry only 83-146 vertices each; the crinkle you see on a raster
+   mask is stair-stepping, not detail, so vector lines are both truer and
+   sharper at every zoom. */
+const LPROG = (() => {
+  const p = gl.createProgram();
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, `#version 300 es
+precision highp float;
+in vec3 aPos;
+uniform mat4 uMVP;
+uniform float uZScale, uBias;
+void main(){
+  vec4 q = uMVP * vec4(aPos.x, aPos.y * uZScale, aPos.z, 1.0);
+  q.z -= uBias * q.w;          /* pull toward the eye so the line sits on the ground */
+  gl_Position = q;
+}`));
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, `#version 300 es
+precision highp float;
+uniform vec4 uCol;
+out vec4 frag;
+void main(){ frag = uCol; }`));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+})();
+const LU = {};
+for (const k of ["uMVP","uZScale","uCol","uBias"]) LU[k] = gl.getUniformLocation(LPROG, k);
+
+function elevAtInit(gx, gy){
+  if (gx < 0 || gy < 0 || gx > W-1 || gy > H-1) return 0;
+  const ix = Math.min(W-2, Math.max(0, gx|0)), iy = Math.min(H-2, Math.max(0, gy|0));
+  const tx = gx-ix, ty = gy-iy, o = iy*W+ix;
+  return (ELEV[o]*(1-tx) + ELEV[o+1]*tx) * (1-ty) +
+         (ELEV[o+W]*(1-tx) + ELEV[o+W+1]*tx) * ty;
+}
+const RINGS = [];
+const lineVAO = gl.createVertexArray();
+{
+  const arr = [];
+  for (const b of D.basins){
+    const first = arr.length / 3;
+    for (const ring of (b.rings || [])){
+      for (let i = 0; i < ring.length - 1; i++){
+        for (const q of [ring[i], ring[i+1]]){
+          arr.push(q[0] - CX, elevAtInit(q[0]/CELL - 0.5, q[1]/CELL - 0.5), q[1] - CZ);
+        }
+      }
+    }
+    RINGS.push({id: b.id, first, count: arr.length/3 - first});
+  }
+  gl.bindVertexArray(lineVAO);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(LPROG, "aPos");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(terrainVAO);
+}
+
+/* ---- state ---- */
+const view = {az: 0.35, el: 0.50, dist: 47000, tx: 0, tz: 0, ty: 0};
+const reduceMotion = matchMedia("(prefers-reduced-motion:reduce)").matches;
+let zScale = 2.0, opac = 0.34, dimOut = true, contour = false, borders = true, sel = 0;
+let satMix = 1.0, shade = 0.60, lineStr = 0.85;
+const net = {roads: true, streams: true, water: true};
+let spin = false, MVP = null, eye = [0,0,0];
+
+function camEye(){
+  const ce = Math.cos(view.el), se = Math.sin(view.el);
+  return [view.tx + view.dist*ce*Math.sin(view.az),
+          view.ty + view.dist*se,
+          view.tz + view.dist*ce*Math.cos(view.az)];
+}
+function resize(){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.round(innerWidth * dpr);
+  cv.height = Math.round(innerHeight * dpr);
+  gl.viewport(0, 0, cv.width, cv.height);
+}
+addEventListener("resize", resize); resize();
+
+/* ---- interaction ---- */
+let drag = null;
+cv.addEventListener("pointerdown", e => {
+  cv.setPointerCapture(e.pointerId);
+  drag = {x:e.clientX, y:e.clientY, pan:e.shiftKey||e.button===2||e.button===1, moved:0};
+  cv.classList.add("drag"); spin = false; syncSpin();
+});
+cv.addEventListener("pointermove", e => {
+  if (drag){
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag.moved += Math.abs(dx) + Math.abs(dy);
+    if (drag.pan){
+      const s = view.dist * 0.0016, ca = Math.cos(view.az), sa = Math.sin(view.az);
+      view.tx -= (dx*ca - dy*sa) * s;
+      view.tz -= (-dx*sa - dy*ca) * s;
+    } else {
+      view.az -= dx * 0.005;
+      view.el = Math.max(0.06, Math.min(1.52, view.el + dy * 0.004));
+    }
+    drag.x = e.clientX; drag.y = e.clientY;
+  } else hoverPick(e.clientX, e.clientY);
+});
+function endDrag(){ drag = null; cv.classList.remove("drag"); }
+cv.addEventListener("pointerup", e => {
+  if (drag && drag.moved < 5) clickPick(e.clientX, e.clientY);
+  endDrag();
+});
+cv.addEventListener("pointercancel", endDrag);
+cv.addEventListener("contextmenu", e => e.preventDefault());
+cv.addEventListener("wheel", e => {
+  e.preventDefault();
+  view.dist = Math.max(2200, Math.min(190000, view.dist * Math.exp(e.deltaY * 0.0011)));
+}, {passive:false});
+let pinch = null;
+cv.addEventListener("touchstart", e => {
+  if (e.touches.length === 2){
+    pinch = Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                       e.touches[0].clientY-e.touches[1].clientY);
+    endDrag();
+  }
+}, {passive:true});
+cv.addEventListener("touchmove", e => {
+  if (e.touches.length === 2 && pinch){
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                         e.touches[0].clientY-e.touches[1].clientY);
+    view.dist = Math.max(2200, Math.min(190000, view.dist * pinch / d));
+    pinch = d;
+  }
+}, {passive:true});
+cv.addEventListener("touchend", () => { pinch = null; }, {passive:true});
+addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const k = e.key.toLowerCase();
+  if (k === "arrowleft") view.az += 0.09;
+  else if (k === "arrowright") view.az -= 0.09;
+  else if (k === "arrowup") view.el = Math.min(1.52, view.el + 0.06);
+  else if (k === "arrowdown") view.el = Math.max(0.06, view.el - 0.06);
+  else if (k === "r") resetView();
+  else if (k === "escape") setSel(0);
+  else return;
+  e.preventDefault();
+});
+
+function pickRay(sx, sy){
+  if (!MVP) return null;
+  const ndx = (sx/innerWidth)*2-1, ndy = 1-(sy/innerHeight)*2;
+  const inv = invert(MVP);
+  if (!inv) return null;
+  const a = xform(inv,[ndx,ndy,-1,1]), b = xform(inv,[ndx,ndy,1,1]);
+  let dx=b[0]-a[0], dy=b[1]-a[1], dz=b[2]-a[2];
+  const L = Math.hypot(dx,dy,dz); dx/=L; dy/=L; dz/=L;
+  let t = 0, step = 90, prevT = 0, prevGap = null;
+  for (let i = 0; i < 1400; i++){
+    const py = a[1] + dy*t;
+    const h = worldY(a[0] + dx*t, a[2] + dz*t);
+    if (h !== null){
+      const gap = py - h * zScale;
+      if (gap <= 0){
+        let tt = t;
+        if (prevGap !== null && prevGap > 0) tt = prevT + (t-prevT)*(prevGap/(prevGap-gap));
+        const fx = a[0]+dx*tt, fz = a[2]+dz*tt, fh = worldY(fx, fz);
+        return fh === null ? null : {x:fx, z:fz, h:fh};
+      }
+      prevGap = gap;
+    } else prevGap = null;
+    prevT = t; t += step; step = Math.min(420, step*1.016);
+    if (t > 500000) break;
+  }
+  return null;
+}
+const rElev = document.getElementById("rElev"), rBasin = document.getElementById("rBasin"),
+      rEN = document.getElementById("rEN");
+let hoverT = 0;
+function hoverPick(sx, sy){
+  const now = performance.now();
+  if (now - hoverT < 45) return;
+  hoverT = now;
+  const p = pickRay(sx, sy);
+  if (!p){ rElev.textContent = "\u2014"; rBasin.textContent = "\u2014"; rEN.textContent = "\u2014"; return; }
+  const b = basinAtWorld(p.x, p.z);
+  rElev.textContent = Math.round(p.h) + " m";
+  rBasin.textContent = b ? (b + " \u00B7 " + D.basins[b-1].name) : "outside";
+  rBasin.style.color = b ? BCSS[b] : "var(--ink-40)";
+  rEN.textContent = Math.round(G.ox + (p.x + CX)) + "  " + Math.round(G.oy - (p.z + CZ));
+}
+function clickPick(sx, sy){
+  const p = pickRay(sx, sy);
+  const b = p ? basinAtWorld(p.x, p.z) : 0;
+  setSel(b === sel ? 0 : b);
+}
+
+/* ---- markers ---- */
+const LAYERS = [
+  {key:"peaks",       label:"Peaks",       cls:"peak", col:"var(--ocean)"},
+  {key:"villages",    label:"Villages",    cls:"vil",  col:"#2A3942"},
+  {key:"falls",       label:"Waterfalls",  cls:"fall", col:"var(--water)"},
+  {key:"attractions", label:"Attractions", cls:"att",  col:"var(--green)"},
+  {key:"rivers",      label:"River names", cls:"riv",  col:"var(--mid)"}
+];
+const vis = {}; LAYERS.forEach(l => vis[l.key] = true);
+
+const POINTS = [];
+function addPoints(key, arr, cls, prio){
+  (arr || []).forEach((p, i) => {
+    p._n = i + 1; p._key = key; p._cls = cls;
+    const el = document.createElement("div");
+    el.className = "mk " + cls;
+    if (cls === "vil"){
+      el.innerHTML = '<div class="vilname' + (p.r <= 1 ? " big" : "") + '"><i></i><span></span></div>';
+      el.querySelector("span").textContent = p.n;
+    } else if (cls === "riv"){
+      el.innerHTML = '<div class="rivname"></div>';
+      el.querySelector(".rivname").textContent = p.n;
+    } else {
+      el.innerHTML = '<div class="badge">' + (i + 1) + "</div>";
+    }
+    el.addEventListener("pointerenter", () => showTip(p));
+    el.addEventListener("pointerleave", hideTip);
+    el.addEventListener("click", () => focusOn(p));
+    document.getElementById("labels").appendChild(el);
+    p._el = el;
+    p._wx = p.x - CX; p._wz = p.y - CZ;
+    if (!p.b) p.b = basinAtWorld(p._wx, p._wz);   /* river labels arrive unassigned */
+    p._prio = prio + (cls === "vil" ? p.r * 0.01 : i * 0.0002);
+    POINTS.push(p);
+  });
+}
+addPoints("peaks", D.peaks, "peak", 0);
+addPoints("rivers", D.rivers, "riv", 1);
+addPoints("falls", D.falls, "fall", 2);
+addPoints("attractions", D.attractions, "att", 3);
+addPoints("villages", D.villages, "vil", 4);
+
+const tip = document.getElementById("tip");
+function showTip(p){
+  let sub;
+  if (p._key === "peaks")            sub = "Peak " + p._n + (p.e ? " \u00B7 " + p.e + " m" : "");
+  else if (p._key === "falls")       sub = "Waterfall " + p._n + (p.h ? " \u00B7 " + p.h + " m drop" : "");
+  else if (p._key === "attractions") sub = p.t + " " + p._n;
+  else if (p._key === "rivers")      sub = "River";
+  else sub = p.p.replace("_", " ") + (p.pop ? " \u00B7 pop. " + p.pop.toLocaleString() : "");
+  tip.innerHTML = '<div class="t">' + sub + '</div><div class="h">' + p.n +
+    '</div><div class="t" style="margin-top:2px">DEM ' + Math.round(p.z) + " m \u00B7 " +
+    (p.b ? "basin " + p.b : "outside the basins") + "</div>";
+  tip.classList.add("show");
+  tip._p = p;
+}
+function hideTip(){ tip.classList.remove("show"); tip._p = null; }
+
+function occluded(wx, wy, wz){
+  const N = 40, tol = 55 * zScale;
+  for (let i = 3; i < N; i++){
+    const t = i / N;
+    const x = eye[0]+(wx-eye[0])*t, y = eye[1]+(wy-eye[1])*t, z = eye[2]+(wz-eye[2])*t;
+    const h = worldY(x, z);
+    if (h !== null && h * zScale > y + tol) return true;
+  }
+  return false;
+}
+
+let focused = null;
+function focusOn(p){
+  if (p.b) setSel(p.b);            /* points outside the basins keep the current view */
+  if (focused) focused._el.classList.remove("on");
+  focused = p; p._el.classList.add("on");
+  flyTo(p._wx, p.z * zScale, p._wz, 9000);
+  const row = document.querySelector('[data-id="' + p._key + "-" + p._n + '"]');
+  if (row){
+    document.querySelectorAll(".row.on").forEach(r => r.classList.remove("on"));
+    row.classList.add("on");
+    row.scrollIntoView({block:"nearest", behavior: reduceMotion ? "auto" : "smooth"});
+  }
+}
+let fly = null;
+function flyTo(x, y, z, dist){
+  const from = {tx:view.tx, ty:view.ty, tz:view.tz, dist:view.dist};
+  const to = {tx:x, ty:y, tz:z, dist:dist};
+  if (reduceMotion){ Object.assign(view, to); return; }
+  fly = {from, to, t0: performance.now(), dur: 750};
+}
+function stepFly(now){
+  if (!fly) return;
+  let k = (now - fly.t0) / fly.dur;
+  if (k >= 1) k = 1;
+  const e = k < .5 ? 4*k*k*k : 1 - Math.pow(-2*k+2, 3)/2;
+  for (const key of ["tx","ty","tz","dist"]) view[key] = fly.from[key] + (fly.to[key]-fly.from[key])*e;
+  if (k === 1) fly = null;
+}
+
+/* ---- register ---- */
+const reg = document.getElementById("register");
+function section(title, ordering, items, render, open){
+  const d = document.createElement("details");
+  d.className = "sec"; d.open = !!open;
+  d.innerHTML = '<summary><span class="chev">\u25B8</span><span class="title">' + title +
+    '</span><span class="count">' + items.length + "</span></summary>" +
+    '<div class="ordering">' + ordering + "</div>";
+  const box = document.createElement("div");
+  items.forEach((it, i) => box.appendChild(render(it, i)));
+  d.appendChild(box);
+  reg.appendChild(d);
+}
+function row(id, key, name, val, cls, onClick){
+  const r = document.createElement("div");
+  r.className = "row"; r.tabIndex = 0; r.dataset.id = id;
+  r.dataset.search = name.toLowerCase();
+  r.innerHTML = '<span class="k ' + cls + '">' + key +
+    '</span><span class="nm"></span><span class="v"></span>';
+  r.querySelector(".nm").textContent = name;
+  r.querySelector(".v").textContent = val;
+  r.addEventListener("click", onClick);
+  r.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " "){ e.preventDefault(); onClick(); }
+  });
+  return r;
+}
+section("Basins", "Numbered as named in the QGIS project.", D.basins, b => {
+  const r = document.createElement("div");
+  r.className = "row"; r.tabIndex = 0; r.dataset.id = "basin-" + b.id;
+  r.dataset.search = b.name.toLowerCase();
+  r.innerHTML = '<span class="swatch" style="background:' + BCSS[b.id] +
+    '"></span><span class="nm"></span><span class="v">' + b.area_km2 + " km\u00B2</span>";
+  r.querySelector(".nm").textContent = b.id + " \u00B7 " + b.name;
+  const go = () => { setSel(sel === b.id ? 0 : b.id); if (sel) frameBasin(b.id); };
+  r.addEventListener("click", go);
+  r.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } });
+  return r;
+}, true);
+section("Peaks", "Numbered high to low.", D.peaks, (p, i) =>
+  row("peaks-" + (i+1), i+1, p.n, p.e ? p.e + " m" : "\u2014", "peak", () => focusOn(p)), true);
+section("Rivers", "Named channels from OpenStreetMap.", D.rivers, (p, i) =>
+  row("rivers-" + (i+1), i+1, p.n, "river", "riv", () => focusOn(p)), true);
+section("Waterfalls", "Numbered by drop, tallest first.", D.falls, (p, i) =>
+  row("falls-" + (i+1), i+1, p.n, p.h ? p.h + " m" : "\u2014", "fall", () => focusOn(p)), false);
+section("Attractions", "Grouped by kind, then A\u2013Z.", D.attractions, (p, i) =>
+  row("attractions-" + (i+1), i+1, p.n, p.t, "att", () => focusOn(p)), false);
+section("Villages", "Towns first, then villages and hamlets.", D.villages, (p, i) =>
+  row("villages-" + (i+1), i+1, p.n, p.p.replace("_", " "), "vil", () => focusOn(p)), false);
+
+document.getElementById("q").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll(".row").forEach(r => {
+    r.style.display = (!q || r.dataset.search.includes(q)) ? "" : "none";
+  });
+  if (q) document.querySelectorAll(".sec").forEach(s => s.open = true);
+});
+
+function frameBasin(id){
+  let sx=0, sz=0, n=0, minx=1e9, maxx=-1e9, minz=1e9, maxz=-1e9;
+  for (let r = 0; r < H; r += 2) for (let c = 0; c < W; c += 2){
+    if ((IDS[r*W+c] & 7) === id){
+      const x = (c+0.5)*CELL - CX, z = (r+0.5)*CELL - CZ;
+      sx += x; sz += z; n++;
+      if (x<minx) minx=x; if (x>maxx) maxx=x;
+      if (z<minz) minz=z; if (z>maxz) maxz=z;
+    }
+  }
+  if (!n) return;
+  flyTo(sx/n, 400*zScale, sz/n, Math.max(9000, Math.max(maxx-minx, maxz-minz) * 1.9));
+}
+function setSel(b){
+  sel = b;
+  document.querySelectorAll('[data-id^="basin-"]').forEach(r =>
+    r.classList.toggle("on", r.dataset.id === "basin-" + b));
+  if (!b && focused){ focused._el.classList.remove("on"); focused = null; }
+}
+
+/* ---- controls ---- */
+const NET = [
+  {key:"roads",   label:"Roads",          col:"#2A3942"},
+  {key:"streams", label:"Stream network", col:"#1E78B0"},
+  {key:"water",   label:"Water bodies",   col:"#164773"}
+];
+const nc = document.getElementById("netChecks");
+NET.forEach(l => {
+  const lab = document.createElement("label");
+  lab.className = "chk";
+  lab.innerHTML = '<input type="checkbox" checked><span class="bar" style="background:' +
+    l.col + '"></span><span>' + l.label + "</span>";
+  lab.querySelector("input").addEventListener("change", e => { net[l.key] = e.target.checked; });
+  nc.appendChild(lab);
+});
+const lc = document.getElementById("layerChecks");
+LAYERS.forEach(l => {
+  const lab = document.createElement("label");
+  lab.className = "chk";
+  lab.innerHTML = '<input type="checkbox" checked><span class="dot" style="background:' +
+    l.col + '"></span><span>' + l.label + "</span>";
+  lab.querySelector("input").addEventListener("change", e => { vis[l.key] = e.target.checked; });
+  lc.appendChild(lab);
+});
+
+const segs = {sat: document.getElementById("bmSat"), mix: document.getElementById("bmMix"),
+              dem: document.getElementById("bmDem")};
+function setBase(mode){
+  satMix = mode === "sat" ? 1.0 : mode === "mix" ? 0.55 : 0.0;
+  for (const k in segs) segs[k].setAttribute("aria-pressed", String(k === mode));
+}
+for (const k in segs) segs[k].addEventListener("click", () => setBase(k));
+
+function slider(id, label, fn, fmt){
+  const s = document.getElementById(id), out = document.getElementById(label);
+  s.addEventListener("input", () => { fn(+s.value); out.textContent = fmt(+s.value); });
+}
+slider("sOpac", "vOpac", v => opac = v/100, v => v + "%");
+slider("sShade", "vShade", v => shade = v/100, v => v + "%");
+slider("sLine", "vLine", v => lineStr = v/100, v => v + "%");
+document.getElementById("sZ").addEventListener("input", e => {
+  const prev = zScale;
+  zScale = +e.target.value / 10;
+  document.getElementById("vZ").textContent = zScale.toFixed(1) + "\u00D7";
+  view.ty *= zScale / prev;
+});
+document.getElementById("cDim").addEventListener("change", e => dimOut = e.target.checked);
+document.getElementById("cCont").addEventListener("change", e => contour = e.target.checked);
+document.getElementById("cBord").addEventListener("change", e => borders = e.target.checked);
+
+function resetView(){
+  spin = false; syncSpin(); setSel(0);
+  Object.assign(view, {az:0.35, el:0.50, dist:47000, tx:0, tz:0, ty:0});
+  fly = null;
+}
+document.getElementById("bReset").addEventListener("click", resetView);
+document.getElementById("bTop").addEventListener("click", () => {
+  view.az = 0; view.el = 1.5; flyTo(0, 0, 0, 73000);
+});
+const bSpin = document.getElementById("bSpin");
+function syncSpin(){ bSpin.setAttribute("aria-pressed", String(spin)); }
+bSpin.addEventListener("click", () => { spin = !spin; syncSpin(); });
+document.getElementById("bClear").addEventListener("click", () => setSel(0));
+/* on a phone there is only room for one panel, so opening one closes the other */
+const narrow = () => innerWidth <= 900;
+function togglePanel(mine, other){
+  const opening = document.body.classList.contains(mine);
+  document.body.classList.toggle(mine);
+  if (opening && narrow()) document.body.classList.add(other);
+}
+document.getElementById("tRail").addEventListener("click", () => togglePanel("hideRail", "hideCtl"));
+document.getElementById("tCtl").addEventListener("click", () => togglePanel("hideCtl", "hideRail"));
+if (narrow()) document.body.classList.add("hideCtl");
+addEventListener("resize", () => {
+  if (!narrow()) document.body.classList.remove("hideRail", "hideCtl");
+});
+
+/* ---- scale bar ---- */
+const sbLabel = document.getElementById("sbLabel"), sbBar = document.getElementById("sbBar"),
+      roseG = document.getElementById("roseG");
+function project(p){
+  const m = MVP;
+  const w = m[3]*p[0] + m[7]*p[1] + m[11]*p[2] + m[15];
+  if (w <= 0) return null;
+  const x = (m[0]*p[0] + m[4]*p[1] + m[8]*p[2] + m[12]) / w;
+  const y = (m[1]*p[0] + m[5]*p[1] + m[9]*p[2] + m[13]) / w;
+  return [(x*0.5+0.5)*innerWidth, (1-(y*0.5+0.5))*innerHeight, w];
+}
+function updateScale(){
+  const a = project([view.tx, view.ty, view.tz]);
+  const b = project([view.tx + 1000, view.ty, view.tz]);
+  if (!a || !b) return;
+  const pxPerKm = Math.abs(b[0] - a[0]);
+  if (!pxPerKm) return;
+  const km = [1,2,5,10,20,50,100].find(k => k * pxPerKm > 62) || 100;
+  sbBar.style.width = Math.round(km * pxPerKm) + "px";
+  sbLabel.textContent = km + " km";
+}
+
+/* ---- render ---- */
+function setCamera(w, h){
+  eye = camEye();
+  const P = persp(Math.PI/4.4, w/h, 60, 460000);
+  MVP = mul(P, lookAt(eye, [view.tx, view.ty, view.tz], [0,1,0]));
+}
+function drawScene(){
+  gl.useProgram(prog);
+  gl.bindVertexArray(terrainVAO);
+  gl.uniformMatrix4fv(U.uMVP, false, new Float32Array(MVP));
+  gl.uniform1f(U.uZScale, zScale);
+  gl.uniform1f(U.uOpac, opac);
+  gl.uniform1f(U.uDim, dimOut ? 1 : 0);
+  gl.uniform1f(U.uContour, contour ? 1 : 0);
+  gl.uniform1f(U.uBorder, borders ? 1 : 0);
+  gl.uniform1f(U.uSatMix, satMix);
+  gl.uniform1f(U.uShade, shade);
+  gl.uniform1f(U.uLine, lineStr);
+  gl.uniform4f(U.uNet, net.roads?1:0, net.streams?1:0, net.water?1:0, 0);
+  gl.uniform1i(U.uSel, sel);
+  gl.uniform3f(U.uEye, eye[0], eye[1], eye[2]);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, VCOUNT);
+
+  if (borders && RINGS.length){
+    gl.useProgram(LPROG);
+    gl.bindVertexArray(lineVAO);
+    gl.uniformMatrix4fv(LU.uMVP, false, new Float32Array(MVP));
+    gl.uniform1f(LU.uZScale, zScale);
+    gl.uniform1f(LU.uBias, 0.0016);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    /* paper-white over imagery, Deep Ocean Blue over the pale elevation ramp */
+    const r = 0.078 + (0.965 - 0.078) * satMix;
+    const g2 = 0.255 + (0.969 - 0.255) * satMix;
+    const b2 = 0.420 + (0.957 - 0.420) * satMix;
+    for (const ring of RINGS){
+      const on = (sel === 0 || sel === ring.id);
+      gl.uniform4f(LU.uCol, r, g2, b2, on ? 0.94 : 0.20);
+      gl.drawArrays(gl.LINES, ring.first, ring.count);
+    }
+    gl.disable(gl.BLEND);
+    gl.bindVertexArray(terrainVAO);
+  }
+}
+
+const labelBoxes = [];
+function frame(now){
+  stepFly(now);
+  if (spin) view.az += 0.0022;
+  setCamera(cv.width, cv.height);
+  drawScene();
+
+  labelBoxes.length = 0;
+  const shown = [];
+  for (const p of POINTS){
+    const el = p._el;
+    if (!vis[p._key] || (sel && p.b !== sel)){ el.style.display = "none"; continue; }
+    const wy = p.z * zScale;
+    const s = project([p._wx, wy, p._wz]);
+    if (!s || s[0] < -90 || s[1] < -40 || s[0] > innerWidth+90 || s[1] > innerHeight+40){
+      el.style.display = "none"; continue;
+    }
+    if (occluded(p._wx, wy, p._wz)){ el.style.display = "none"; continue; }
+    p._sx = s[0]; p._sy = s[1]; p._d = s[2];
+    shown.push(p);
+  }
+  shown.sort((a, b) => (a._prio - b._prio) || (a._d - b._d));
+  for (const p of shown){
+    const el = p._el;
+    const isText = p._cls === "vil" || p._cls === "riv";
+    const half = isText ? Math.min(88, 22 + p.n.length * 3.3) : 12;
+    const hh = isText ? 9 : 12;
+    let clash = false;
+    for (const bx of labelBoxes){
+      if (Math.abs(bx[0]-p._sx) < bx[2]+half && Math.abs(bx[1]-p._sy) < bx[3]+hh){ clash = true; break; }
+    }
+    if (clash && p !== focused){ el.style.display = "none"; continue; }
+    labelBoxes.push([p._sx, p._sy, half, hh]);
+    el.style.display = "";
+    el.style.transform = "translate3d(" + p._sx.toFixed(1) + "px," + p._sy.toFixed(1) + "px,0)";
+    el.style.zIndex = String(100000 - Math.round(p._d / 10));
+  }
+  if (tip._p && tip._p._el.style.display !== "none"){
+    tip.style.left = tip._p._sx + "px"; tip.style.top = tip._p._sy + "px";
+  } else if (tip._p) tip.classList.remove("show");
+
+  roseG.setAttribute("transform", "rotate(" + (view.az * 180/Math.PI).toFixed(1) + " 20 20)");
+  updateScale();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+setTimeout(() => document.getElementById("boot").classList.add("gone"), 260);
+
+/* headless render hook: lets the map be checked without a compositing window */
+window.__kmap = {
+  view, D, POINTS,
+  state: () => ({zScale, opac, dimOut, contour, borders, sel, satMix, shade, lineStr,
+                 net: Object.assign({}, net), mvp: !!MVP}),
+  set(o){
+    Object.assign(view, o.view || {});
+    if (o.zScale !== undefined) zScale = o.zScale;
+    if (o.opac !== undefined) opac = o.opac;
+    if (o.satMix !== undefined) satMix = o.satMix;
+    if (o.shade !== undefined) shade = o.shade;
+    if (o.lineStr !== undefined) lineStr = o.lineStr;
+    if (o.contour !== undefined) contour = o.contour;
+    if (o.dimOut !== undefined) dimOut = o.dimOut;
+    if (o.sel !== undefined) sel = o.sel;
+    if (o.net) Object.assign(net, o.net);
+  },
+  shot(w, h){
+    cv.width = w; cv.height = h; gl.viewport(0, 0, w, h);
+    setCamera(w, h);
+    drawScene();
+    gl.finish();
+    return cv.toDataURL("image/png");
+  },
+  markers(w, h){
+    const out = [];
+    for (const p of POINTS){
+      const wy = p.z * zScale, m = MVP, x = p._wx, z = p._wz;
+      const ww = m[3]*x + m[7]*wy + m[11]*z + m[15];
+      if (ww <= 0) continue;
+      const sx = ((m[0]*x + m[4]*wy + m[8]*z + m[12]) / ww * 0.5 + 0.5) * w;
+      const sy = (1 - ((m[1]*x + m[5]*wy + m[9]*z + m[13]) / ww * 0.5 + 0.5)) * h;
+      if (sx < 0 || sy < 0 || sx > w || sy > h) continue;
+      out.push({k:p._key, n:p._n, name:p.n, sx:Math.round(sx), sy:Math.round(sy),
+                occ: occluded(p._wx, wy, p._wz)});
+    }
+    return out;
+  },
+  texState: () => ({sat: document.getElementById("satImg").naturalWidth,
+                    ovl: document.getElementById("ovlImg").naturalWidth})
+};
+})();
+</script>

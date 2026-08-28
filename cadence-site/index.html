@@ -1,0 +1,1041 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Cadence - sex education for adults, from the anatomy up.">
+<title>Cadence</title>
+<style>
+  /* ============================================================
+     TOKENS â€” light is the base; dark redefines tokens only.
+     ============================================================ */
+  :root {
+    --paper:      #EDEEEA;
+    --paper-2:    #F7F8F4;
+    --paper-3:    #E2E4DE;
+    --ink:        #14181B;
+    --ink-2:      #4C5459;
+    --ink-3:      #767E82;
+    --rule:       #C9CDC6;
+    --rule-soft:  #DBDED7;
+    --carmine:    #A8213A;
+    --carmine-2:  #8C1B30;
+    --ochre:      #946C15;
+    --tissue:     #C8CCC4;
+    --focus:      #A8213A;
+
+    --font-display: "Bahnschrift", "DIN Alternate", "Avenir Next Condensed", "Franklin Gothic Medium", "Arial Narrow", sans-serif;
+    --font-body:    "Charter", "Bitstream Charter", "Iowan Old Style", Cambria, Constantia, "Palatino Linotype", Georgia, serif;
+    --font-mono:    "Consolas", "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+
+    --measure: 63ch;
+    --gutter: 104px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #101417;
+      --paper-2:    #171C20;
+      --paper-3:    #1D2429;
+      --ink:        #E5E8E3;
+      --ink-2:      #9DA6AA;
+      --ink-3:      #77807F;
+      --rule:       #2B3339;
+      --rule-soft:  #212930;
+      --carmine:    #E0566F;
+      --carmine-2:  #F0798D;
+      --ochre:      #D6A94A;
+      --tissue:     #39434A;
+      --focus:      #E0566F;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #101417;
+    --paper-2:    #171C20;
+    --paper-3:    #1D2429;
+    --ink:        #E5E8E3;
+    --ink-2:      #9DA6AA;
+    --ink-3:      #77807F;
+    --rule:       #2B3339;
+    --rule-soft:  #212930;
+    --carmine:    #E0566F;
+    --carmine-2:  #F0798D;
+    --ochre:      #D6A94A;
+    --tissue:     #39434A;
+    --focus:      #E0566F;
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-stretch: 87.5%;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+    margin: 0;
+    line-height: 1.08;
+  }
+
+  p { margin: 0; }
+  a { color: var(--carmine); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .shell {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ============================================================
+     AGE GATE
+     ============================================================ */
+  #gate {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+  #gate.gone { display: none; }
+
+  .gate-card {
+    max-width: 460px;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 30px 0 26px;
+  }
+  .gate-card .mono { color: var(--ink-3); display: block; margin-bottom: 20px; }
+  .gate-card h2 { font-size: 30px; margin-bottom: 14px; }
+  .gate-card p { color: var(--ink-2); font-size: 15.5px; }
+  .gate-actions { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+  #gate-refused { margin-top: 20px; color: var(--ink-2); font-size: 15px; }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    font-family: var(--font-display);
+    font-stretch: 87.5%;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 11px 22px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    border-radius: 0;
+    transition: background .16s, color .16s, border-color .16s;
+  }
+  .btn:hover { background: var(--carmine); border-color: var(--carmine); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+  .btn.ghost:hover { border-color: var(--ink); background: transparent; color: var(--ink); }
+  a.btn { display: inline-block; text-decoration: none; }
+  a.btn.ghost:hover { color: var(--ink); }
+
+  /* ---- site nav ---- */
+  nav.main { border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; align-items: center; }
+  nav.main a {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase;
+    padding: 14px 0; margin-right: 30px; color: var(--ink-3); text-decoration: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  nav.main a:hover { color: var(--ink); }
+  nav.main a.on { color: var(--ink); border-bottom-color: var(--carmine); }
+  nav.main .spacer { flex: 1; }
+  nav.main .free { color: var(--carmine); border: 1px solid var(--rule); padding: 4px 9px; margin-right: 0; }
+
+  /* ============================================================
+     MASTHEAD
+     ============================================================ */
+  .masthead {
+    border-bottom: 1px solid var(--ink);
+    padding: 22px 0 14px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-stretch: 75%;
+    font-weight: 700;
+    font-size: 27px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .masthead .strap { color: var(--ink-2); font-size: 14.5px; font-style: italic; }
+  .masthead .tag { color: var(--ink-3); border: 1px solid var(--rule); padding: 3px 8px; }
+
+  /* ============================================================
+     PLATE LAYOUT
+     ============================================================ */
+  .plate {
+    display: grid;
+    grid-template-columns: var(--gutter) minmax(0, 1fr);
+    gap: 0 32px;
+    padding: 62px 0 66px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .plate:last-of-type { border-bottom: none; }
+
+  .plate-no {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    line-height: 1.5;
+    padding-top: 7px;
+  }
+  .plate-no b { display: block; color: var(--carmine); font-weight: 400; }
+
+  .plate-body { display: flex; flex-direction: column; gap: 26px; }
+  .lede { max-width: var(--measure); display: flex; flex-direction: column; gap: 16px; }
+  .lede p { color: var(--ink-2); }
+  .lede p strong { color: var(--ink); font-weight: 600; }
+
+  h2 { font-size: clamp(30px, 4.4vw, 46px); }
+  h3 { font-size: 19px; font-stretch: 87.5%; }
+
+  @media (max-width: 760px) {
+    .plate { grid-template-columns: 1fr; gap: 14px; padding: 46px 0 50px; }
+    .plate-no { padding-top: 0; }
+    .plate-no b { display: inline; }
+    :root { --gutter: 0px; }
+  }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero { padding-top: 74px; }
+  .hero h1 {
+    font-size: clamp(40px, 7.4vw, 82px);
+    font-stretch: 75%;
+    letter-spacing: -0.02em;
+    max-width: 15ch;
+  }
+  .hero h1 em { font-style: normal; color: var(--carmine); }
+
+  /* ============================================================
+     FIGURES
+     ============================================================ */
+  figure {
+    margin: 0;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 26px 26px 20px;
+  }
+  figcaption {
+    font-size: 14px;
+    color: var(--ink-2);
+    border-top: 1px solid var(--rule-soft);
+    padding-top: 12px;
+    margin-top: 16px;
+    max-width: 68ch;
+  }
+  figcaption b { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 400; }
+  .fig-scroll { overflow-x: auto; }
+  svg { max-width: 100%; height: auto; display: block; }
+
+  /* --- anatomy figure --- */
+  .fig-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .fig-head .mono { color: var(--ink-3); }
+
+  .seg { display: inline-flex; border: 1px solid var(--rule); }
+  .seg button {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.11em; text-transform: uppercase;
+    padding: 8px 14px; border: none; background: transparent;
+    color: var(--ink-2); cursor: pointer;
+  }
+  .seg button + button { border-left: 1px solid var(--rule); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+  #anatomy .tissue { fill: var(--tissue); stroke: var(--ink); stroke-width: 1.1; }
+  #anatomy .glans  { fill: var(--carmine); stroke: var(--ink); stroke-width: 1.1; }
+  #anatomy .lead   { stroke: var(--ink-3); stroke-width: .9; fill: none; }
+  #anatomy .leaddot{ fill: var(--ink-3); }
+  #anatomy .lbl {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .09em;
+    text-transform: uppercase; fill: var(--ink-2);
+  }
+  #anatomy .scale { stroke: var(--ochre); stroke-width: 1.2; fill: none; }
+  #anatomy .scaletxt { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; fill: var(--ochre); }
+  #anatomy .hidden-part { transition: opacity .55s ease, fill .3s; }
+
+  /* "taught" mode: everything but the glans drops to a ghost */
+  #anatomy.taught .hidden-part { opacity: .1; }
+  #anatomy.taught .taught-only { opacity: 1; }
+  #anatomy .taught-only { opacity: 0; transition: opacity .4s ease; }
+
+  .g-lbl { cursor: pointer; }
+  .g-lbl:hover .lbl, .g-lbl:focus .lbl { fill: var(--carmine); }
+  /* stroke only â€” .lead is an open polyline and must stay fill:none */
+  .g-lbl:hover .lead, .g-lbl:focus .lead { stroke: var(--carmine); }
+  .g-lbl:hover .leaddot, .g-lbl:focus .leaddot { fill: var(--carmine); }
+  /* labels for structures that are ghosted in "as usually drawn" must not be hoverable */
+  #anatomy.taught .g-lbl.hidden-part { pointer-events: none; }
+
+  #anatomy.hl-crus .p-crus,
+  #anatomy.hl-bulb .p-bulb,
+  #anatomy.hl-body .p-body,
+  #anatomy.hl-glans .p-glans { fill: var(--carmine); }
+
+  #anat-read {
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .06em;
+    color: var(--ink-2); min-height: 2.6em; border-left: 2px solid var(--carmine);
+    padding-left: 12px; margin-top: 16px; text-transform: none;
+  }
+
+  /* draw-in */
+  @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .anim { animation: riseIn .8s cubic-bezier(.2,.7,.3,1) both; }
+  .d1 { animation-delay: .05s; } .d2 { animation-delay: .18s; }
+  .d3 { animation-delay: .32s; } .d4 { animation-delay: .46s; }
+
+  /* ============================================================
+     NOTATION CARD
+     ============================================================ */
+  .notation { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 30px; align-items: start; }
+  @media (max-width: 820px) { .notation { grid-template-columns: 1fr; } }
+
+  #notefield .field { fill: var(--paper-3); stroke: var(--ink); stroke-width: 1.4; }
+  #notefield .contour { fill: none; stroke: var(--ink-3); stroke-width: .8; stroke-dasharray: 2 4; opacity: .55; }
+  #notefield .track { fill: none; stroke: var(--carmine); stroke-linecap: round; opacity: .85; }
+  #notefield .halo { fill: var(--carmine); opacity: .16; }
+  #notefield .head { fill: var(--carmine); stroke: var(--paper-2); stroke-width: 1.5; }
+  #notefield .tick { stroke: var(--ink-3); stroke-width: 1; }
+  #notefield .ticktxt { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; fill: var(--ink-3); }
+
+  .controls { display: flex; flex-direction: column; gap: 22px; }
+  .ctl-group { display: flex; flex-direction: column; gap: 9px; }
+  .ctl-group > .mono { color: var(--ink-3); }
+  .pattern-list { display: flex; flex-direction: column; }
+  .pattern-list button {
+    font-family: var(--font-body); font-size: 15px; text-align: left;
+    background: transparent; border: none; border-top: 1px solid var(--rule-soft);
+    padding: 9px 0 9px 20px; color: var(--ink-2); cursor: pointer; position: relative;
+  }
+  .pattern-list button:last-child { border-bottom: 1px solid var(--rule-soft); }
+  .pattern-list button::before {
+    content: ""; position: absolute; left: 0; top: 50%; width: 8px; height: 8px;
+    margin-top: -4px; border: 1px solid var(--ink-3); border-radius: 50%;
+  }
+  .pattern-list button[aria-pressed="true"] { color: var(--ink); }
+  .pattern-list button[aria-pressed="true"]::before { background: var(--carmine); border-color: var(--carmine); }
+
+  input[type="range"] { width: 100%; accent-color: var(--carmine); margin: 0; }
+
+  .readout {
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .08em;
+    color: var(--ink-2); display: flex; justify-content: space-between; gap: 10px;
+  }
+  .readout span:last-child { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .why {
+    border-top: 1px solid var(--rule); padding-top: 14px;
+    font-size: 14.5px; color: var(--ink-2); line-height: 1.55;
+  }
+  .why b { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--carmine); font-weight: 400; display: block; margin-bottom: 6px; }
+
+  /* ============================================================
+     CURRICULUM
+     ============================================================ */
+  .modules { display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .module {
+    display: grid; grid-template-columns: 46px minmax(0,1fr) auto; gap: 20px;
+    align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--rule-soft);
+  }
+  .module .num { font-family: var(--font-mono); font-size: 11px; color: var(--carmine); letter-spacing: .1em; }
+  .module h3 { margin-bottom: 5px; }
+  .module p { color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+  .module .len { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: .08em; white-space: nowrap; }
+  @media (max-width: 620px) {
+    .module { grid-template-columns: 34px minmax(0,1fr); gap: 12px; }
+    .module .len { grid-column: 2; }
+  }
+
+  /* ============================================================
+     EVIDENCE / PRIVACY GRIDS
+     ============================================================ */
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(238px, 1fr)); gap: 30px 34px; }
+  .col h3 { margin-bottom: 8px; }
+  .col p { color: var(--ink-2); font-size: 15px; line-height: 1.55; }
+
+  .refs { display: flex; flex-direction: column; gap: 11px; margin: 0; padding: 0; list-style: none; }
+  .refs li {
+    font-size: 14px; color: var(--ink-2); line-height: 1.5;
+    padding-left: 20px; position: relative;
+  }
+  .refs li::before {
+    content: ""; position: absolute; left: 0; top: .62em;
+    width: 9px; height: 1px; background: var(--carmine);
+  }
+  .refs i { color: var(--ink); font-style: italic; }
+
+  /* ============================================================
+     ACCESS
+     ============================================================ */
+  .price-row { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+  .price {
+    font-family: var(--font-display); font-stretch: 75%; font-weight: 700;
+    font-size: 74px; line-height: .86; letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .price-note { color: var(--ink-2); font-size: 15px; max-width: 30ch; padding-bottom: 6px; }
+  .price-note b { color: var(--ink); font-weight: 600; }
+
+  .checks { display: flex; flex-direction: column; gap: 9px; margin: 0; padding: 0; list-style: none; }
+  .checks li { font-size: 15px; color: var(--ink-2); padding-left: 22px; position: relative; }
+  .checks li::before {
+    content: ""; position: absolute; left: 0; top: .5em; width: 7px; height: 7px;
+    background: var(--carmine);
+  }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  footer {
+    border-top: 1px solid var(--ink);
+    padding: 26px 0 54px;
+    display: flex; gap: 22px; justify-content: space-between; flex-wrap: wrap;
+  }
+  footer .mono { color: var(--ink-3); }
+  footer p { color: var(--ink-3); font-size: 13.5px; max-width: 46ch; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body><!-- ================= AGE GATE ================= -->
+<div id="gate">
+  <div class="gate-card">
+    <span class="mono">Cadence Â· Adults only</span>
+    <h2>This is explicit sexual health education.</h2>
+    <p>Clinical anatomy, technique instruction, and frank discussion of sexual function. Intended for adults. It contains no pornography and no photographs of people.</p>
+    <div class="gate-actions">
+      <button class="btn" id="gate-yes">I am 18 or older â€” enter</button>
+      <button class="btn ghost" id="gate-no">Leave</button>
+    </div>
+    <p id="gate-refused" hidden>Understood. Close this tab to leave. If you are looking for general sexual health information, your national health service is a good place to start.</p>
+  </div>
+</div>
+
+<!-- ================= MASTHEAD ================= -->
+<div class="shell">
+  <header class="masthead">
+    <div class="wordmark">Cadence</div>
+    <div class="strap">Sex education for adults, from the anatomy up.</div>
+    <div class="mono tag">18+</div>
+  </header>
+  <nav class="main">
+    <a href="#" class="on">Overview</a>
+    <a href="app.html#/atlas">Atlas</a>
+    <a href="app.html#/library">Notation library</a>
+    <a href="app.html#/overlap">Overlap tool</a>
+    <span class="spacer"></span>
+    <span class="mono free">Atlas is free</span>
+  </nav>
+</div>
+
+<main class="shell">
+
+  <!-- ================= PLATE 01 â€” STRUCTURE ================= -->
+  <section class="plate hero">
+    <div class="plate-no">Plate<b>01</b>Structure</div>
+    <div class="plate-body">
+      <h1 class="anim d1">Most diagrams show you about <em>a fifth</em> of it.</h1>
+      <div class="lede anim d2">
+        <p>The clitoris is roughly <strong>9 to 10 centimetres</strong> of erectile tissue. Most of it is internal â€” two legs running back along the pubic arch, and two bulbs wrapping the vaginal opening. All of it engorges. All of it is innervated.</p>
+        <p>Its complete form was not properly described in the modern anatomical literature until <strong>1998</strong>. If your sex education included a diagram at all, it almost certainly showed a dot.</p>
+      </div>
+
+      <figure class="anim d3">
+        <div class="fig-head">
+          <span class="mono">Fig. 1 â€” Clitoral complex, anterior view</span>
+          <div class="seg" role="group" aria-label="Diagram mode">
+            <button id="mode-taught" aria-pressed="true">As usually drawn</button>
+            <button id="mode-full" aria-pressed="false">As it actually is</button>
+          </div>
+        </div>
+
+        <div class="fig-scroll">
+          <svg id="anatomy" class="taught" viewBox="0 0 720 430" role="img"
+               aria-label="Diagram of the clitoral complex showing the glans at the surface and the internal body, crura and vestibular bulbs, spanning roughly nine to ten centimetres.">
+
+            <!-- LEFT HALF -->
+            <g>
+              <path class="tissue p-crus hidden-part" d="M 356 84 C 326 110, 276 158, 242 214 C 222 248, 210 280, 205 306 L 197 305 C 201 277, 212 245, 232 211 C 264 155, 310 105, 340 80 Z"/>
+              <path class="tissue p-bulb hidden-part" d="M 341 128 C 324 152, 313 184, 311 216 C 309 246, 316 270, 329 282 C 340 269, 346 240, 346 208 C 346 174, 344 146, 341 128 Z"/>
+            </g>
+            <!-- RIGHT HALF (mirrored about x=360) -->
+            <g transform="matrix(-1,0,0,1,720,0)">
+              <path class="tissue p-crus hidden-part" d="M 356 84 C 326 110, 276 158, 242 214 C 222 248, 210 280, 205 306 L 197 305 C 201 277, 212 245, 232 211 C 264 155, 310 105, 340 80 Z"/>
+              <path class="tissue p-bulb hidden-part" d="M 341 128 C 324 152, 313 184, 311 216 C 309 246, 316 270, 329 282 C 340 269, 346 240, 346 208 C 346 174, 344 146, 341 128 Z"/>
+            </g>
+
+            <!-- body / corpus -->
+            <path class="tissue p-body hidden-part" d="M 347 116 C 343 104, 344 90, 350 78 L 370 78 C 376 90, 377 104, 373 116 Z"/>
+
+            <!-- vestibule + urethra (context, always faint) -->
+            <path class="tissue hidden-part" d="M 360 210 C 350 228, 349 258, 360 282 C 371 258, 370 228, 360 210 Z" opacity=".85"/>
+            <circle class="tissue hidden-part" cx="360" cy="188" r="4.5"/>
+
+            <!-- glans â€” always visible -->
+            <ellipse class="glans p-glans" cx="360" cy="124" rx="14" ry="12"/>
+
+            <!-- labels -->
+            <g class="g-lbl" data-hl="glans" data-read="GLANS â€” the only part most people are shown. About 8 mm across, and roughly 8,000 nerve endings. It is the tip, not the organ.">
+              <circle class="leaddot" cx="374" cy="120" r="2"/>
+              <path class="lead" d="M 374 120 L 470 96 L 500 96"/>
+              <text class="lbl" x="506" y="100">Glans</text>
+            </g>
+
+            <g class="g-lbl hidden-part" data-hl="body" data-read="BODY (corpus) â€” the shaft, angling back under the pubic bone. It is what you are pressing on when indirect pressure works better than direct contact.">
+              <circle class="leaddot" cx="374" cy="90" r="2"/>
+              <path class="lead" d="M 374 90 L 470 62 L 500 62"/>
+              <text class="lbl" x="506" y="66">Body Â· corpus</text>
+            </g>
+
+            <g class="g-lbl hidden-part" data-hl="crus" data-read="CRURA â€” two legs, 5 to 9 cm each, running back along the pubic arch. They engorge during arousal, which is why sensation spreads well beyond the visible tip.">
+              <circle class="leaddot" cx="232" cy="212" r="2"/>
+              <path class="lead" d="M 232 212 L 150 186 L 122 186"/>
+              <text class="lbl" x="116" y="190" text-anchor="end">Crus Ã— 2</text>
+            </g>
+
+            <g class="g-lbl hidden-part" data-hl="bulb" data-read="VESTIBULAR BULBS â€” paired erectile bodies flanking the vaginal opening. They roughly double in volume when aroused. This is most of what 'the G-spot' is touching.">
+              <circle class="leaddot" cx="322" cy="256" r="2"/>
+              <path class="lead" d="M 322 256 L 172 296 L 144 296"/>
+              <text class="lbl" x="138" y="300" text-anchor="end">Vestibular bulb Ã— 2</text>
+            </g>
+
+            <g class="g-lbl hidden-part">
+              <circle class="leaddot" cx="366" cy="188" r="2"/>
+              <path class="lead" d="M 366 188 L 470 178 L 500 178"/>
+              <text class="lbl" x="506" y="182">Urethral opening</text>
+            </g>
+
+            <g class="g-lbl hidden-part">
+              <circle class="leaddot" cx="368" cy="252" r="2"/>
+              <path class="lead" d="M 368 252 L 470 262 L 500 262"/>
+              <text class="lbl" x="506" y="266">Vaginal opening</text>
+            </g>
+
+            <!-- scale bar â€” full -->
+            <g class="hidden-part">
+              <path class="scale" d="M 197 350 L 197 344 M 197 350 L 523 350 M 523 350 L 523 344"/>
+              <text class="scaletxt" x="360" y="368" text-anchor="middle">â‰ˆ 9â€“10 cm of erectile tissue</text>
+            </g>
+
+            <!-- scale bar â€” taught mode -->
+            <g class="taught-only">
+              <path class="scale" d="M 346 350 L 346 344 M 346 350 L 374 350 M 374 350 L 374 344"/>
+              <text class="scaletxt" x="360" y="368" text-anchor="middle">â‰ˆ 8 mm â€” what the textbook drew</text>
+            </g>
+          </svg>
+        </div>
+
+        <div id="anat-read">Hover a label to read the structure. Switch the toggle above to see what the other four fifths look like.</div>
+        <figcaption><b>Fig. 1</b> &nbsp; The same organ, drawn twice. The left toggle is the diagram most people were given in school; the right is the structure described by O'Connell and colleagues in 1998. Nothing was added â€” it was simply never drawn. &nbsp;<a href="app.html#/atlas">Open the full atlas â†’</a></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= PLATE 02 â€” NOTATION ================= -->
+  <section class="plate">
+    <div class="plate-no">Plate<b>02</b>Notation</div>
+    <div class="plate-body">
+      <h2>We draw technique the way physiotherapy draws movement.</h2>
+      <div class="lede">
+        <p>No bodies, no performers, nothing to compare yourself to. A technique is four variables: <strong>a region, a path, a pressure, and a tempo.</strong> Change one and the rest of the diagram responds â€” which is the actual lesson, because in practice you are adjusting one variable at a time and reading the response.</p>
+        <p>The dotted contours are sensitivity gradient, not outline. Density of innervation is why <em>the same path at a different pressure</em> is a different technique.</p>
+      </div>
+
+      <figure>
+        <div class="fig-head">
+          <span class="mono">Fig. 2 â€” Technique notation, interactive</span>
+          <span class="mono" id="live-state">Circling Â· P3 Â· 72 / min</span>
+        </div>
+
+        <div class="notation">
+          <div class="fig-scroll">
+            <svg id="notefield" viewBox="0 0 340 330" role="img" aria-label="Abstract notation diagram: a region with sensitivity contours and an animated motion path.">
+              <!-- region -->
+              <path class="field" d="M 170 64 C 222 60, 258 100, 260 152 C 262 206, 224 250, 170 252 C 116 254, 78 208, 80 152 C 82 100, 118 68, 170 64 Z"/>
+              <!-- sensitivity contours -->
+              <path class="contour" d="M 170 92 C 208 90, 232 118, 234 156 C 236 194, 208 222, 170 224 C 132 226, 106 194, 108 156 C 110 118, 132 94, 170 92 Z"/>
+              <path class="contour" d="M 170 118 C 196 117, 212 136, 213 157 C 214 180, 196 198, 170 199 C 144 200, 127 180, 128 157 C 129 136, 144 119, 170 118 Z"/>
+              <path class="contour" d="M 170 140 C 184 140, 193 148, 193 158 C 193 169, 184 177, 170 177 C 156 177, 147 169, 147 158 C 147 148, 156 140, 170 140 Z"/>
+
+              <!-- motion path -->
+              <path id="track" class="track" d="" stroke-width="4"/>
+              <circle id="halo" class="halo" cx="170" cy="158" r="14"/>
+              <circle id="head" class="head" cx="170" cy="158" r="6"/>
+
+              <!-- pressure gauge, left rail -->
+              <g>
+                <path class="tick" d="M 34 276 L 306 276"/>
+                <text class="ticktxt" x="34" y="296">LIGHT</text>
+                <text class="ticktxt" x="306" y="296" text-anchor="end">FIRM</text>
+                <g id="pgauge"><path class="tick" d="M 88 270 L 88 282" stroke="currentColor"/></g>
+              </g>
+            </svg>
+          </div>
+
+          <div class="controls">
+            <div class="ctl-group">
+              <span class="mono">Path</span>
+              <div class="pattern-list" role="group" aria-label="Motion path">
+                <button data-pat="0" aria-pressed="true">Circling</button>
+                <button data-pat="1" aria-pressed="false">Lateral sweep</button>
+                <button data-pat="2" aria-pressed="false">Figure eight</button>
+                <button data-pat="3" aria-pressed="false">Held, no motion</button>
+              </div>
+            </div>
+
+            <div class="ctl-group">
+              <div class="readout"><span>Pressure</span><span id="p-out">3 / 5</span></div>
+              <input type="range" id="pressure" min="1" max="5" step="1" value="3" aria-label="Pressure, 1 to 5">
+            </div>
+
+            <div class="ctl-group">
+              <div class="readout"><span>Tempo</span><span id="t-out">72 / min</span></div>
+              <input type="range" id="tempo" min="20" max="150" step="2" value="72" aria-label="Tempo in cycles per minute">
+            </div>
+
+            <div class="why">
+              <b>Why this works</b>
+              <span id="why-text">Circling distributes contact around the glans rather than onto it, recruiting the body and bulbs underneath. It is the most commonly reported preference precisely because it avoids the over-sensitivity that direct contact causes.</span>
+            </div>
+          </div>
+        </div>
+
+        <figcaption><b>Fig. 2</b> &nbsp; Interactive. Every technique in the course is notated this way, alongside the anatomy it is acting on. The point is not to copy the path â€” it is to learn which variable to change when something isn't working.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= PLATE 03 â€” AROUSAL ================= -->
+  <section class="plate">
+    <div class="plate-no">Plate<b>03</b>Response</div>
+    <div class="plate-body">
+      <h2>Desire does not always come first.</h2>
+      <div class="lede">
+        <p>The model most people carry â€” desire, then arousal, then orgasm, in that order â€” comes from research published in <strong>1966</strong>. For a great many women it describes the experience badly, and the mismatch gets read as a personal failing.</p>
+        <p>The responsive model puts arousal <em>before</em> desire: something starts, the body responds, and wanting arrives afterwards. Nothing is broken. The sequence is simply different.</p>
+      </div>
+
+      <figure>
+        <div class="fig-head"><span class="mono">Fig. 3 â€” Two models of sexual response</span></div>
+        <div class="fig-scroll">
+          <svg viewBox="0 0 760 300" role="img" aria-label="Comparison of the linear sexual response model with the circular responsive desire model, in which arousal precedes desire.">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+              </marker>
+              <marker id="ar-c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" style="fill:var(--carmine)"/>
+              </marker>
+            </defs>
+
+            <g fill="none" stroke="currentColor" stroke-width="1" opacity=".85">
+              <!-- LEFT: linear -->
+              <path d="M 40 236 L 330 236" marker-end="url(#ar)"/>
+              <path d="M 40 236 L 40 56"/>
+            </g>
+            <text x="40" y="40" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;fill:currentColor;">LINEAR Â· 1966</text>
+            <text x="330" y="256" text-anchor="end" style="font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;fill:currentColor;opacity:.6;">TIME</text>
+
+            <path d="M 40 236 C 92 236, 104 176, 150 160 C 194 145, 206 138, 226 96 C 236 74, 248 74, 258 100 C 268 128, 292 214, 330 232"
+                  fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="240" cy="80" r="4" style="fill:var(--carmine)"/>
+            <text x="240" y="66" text-anchor="middle" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;fill:var(--carmine);">ORGASM</text>
+
+            <g style="font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;fill:currentColor;opacity:.75;">
+              <text x="62" y="222">DESIRE</text>
+              <text x="130" y="182">AROUSAL</text>
+              <text x="196" y="126">PLATEAU</text>
+              <text x="300" y="220" text-anchor="end">RESOLUTION</text>
+            </g>
+
+            <!-- divider -->
+            <path d="M 386 40 L 386 268" stroke="currentColor" stroke-width="1" opacity=".25"/>
+
+            <!-- RIGHT: circular -->
+            <text x="440" y="40" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;fill:currentColor;">RESPONSIVE Â· 2000</text>
+
+            <g fill="none" stroke-width="2" style="stroke:var(--carmine)">
+              <path d="M 590 82 A 76 76 0 0 1 664 158" marker-end="url(#ar-c)"/>
+              <path d="M 664 176 A 76 76 0 0 1 590 234" marker-end="url(#ar-c)"/>
+              <path d="M 570 234 A 76 76 0 0 1 496 176" marker-end="url(#ar-c)"/>
+              <path d="M 496 158 A 76 76 0 0 1 570 82" marker-end="url(#ar-c)"/>
+            </g>
+
+            <g style="font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;fill:currentColor;" text-anchor="middle">
+              <text x="580" y="72">WILLINGNESS</text>
+              <text x="580" y="252">SATISFACTION</text>
+            </g>
+            <g style="font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;fill:currentColor;">
+              <text x="676" y="162">STIMULI</text>
+              <text x="676" y="176">â†’ AROUSAL</text>
+            </g>
+            <g style="font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;fill:var(--carmine);" text-anchor="end">
+              <text x="484" y="162">DESIRE</text>
+              <text x="484" y="176">ARRIVES HERE</text>
+            </g>
+            <circle cx="492" cy="167" r="4" style="fill:var(--carmine)"/>
+          </svg>
+        </div>
+        <figcaption><b>Fig. 3</b> &nbsp; The difference is the position of desire in the loop, and it changes the practical advice completely. Under the linear model, no desire means stop. Under the responsive model, no desire at the start is the ordinary case, and the useful question becomes what would make starting worth it.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= PLATE 04 â€” CURRICULUM ================= -->
+  <section class="plate">
+    <div class="plate-no">Plate<b>04</b>Curriculum</div>
+    <div class="plate-body">
+      <h2>Seven modules, in order.</h2>
+      <div class="lede">
+        <p>The sequence matters. Technique taught before anatomy is a list of tricks; anatomy taught before arousal leaves out the reason any of it works. Around four hours total, designed to be taken over a few weeks rather than in one sitting.</p>
+      </div>
+
+      <div class="modules">
+        <div class="module">
+          <span class="num">01</span>
+          <div><h3>The anatomy you weren't shown</h3><p>The erectile complex in full. Nerve distribution and why pressure matters more than location. What actually changes during arousal.</p></div>
+          <span class="len">32 min</span>
+        </div>
+        <div class="module">
+          <span class="num">02</span>
+          <div><h3>Arousal, honestly</h3><p>Responsive desire. Arousal non-concordance â€” why physical response and felt desire disagree more often than not. The warm-up problem.</p></div>
+          <span class="len">38 min</span>
+        </div>
+        <div class="module">
+          <span class="num">03</span>
+          <div><h3>Notation: hands</h3><p>Nine techniques in full notation, each with the anatomy it acts on and the variable to change first when it isn't landing.</p></div>
+          <span class="len">46 min</span>
+        </div>
+        <div class="module">
+          <span class="num">04</span>
+          <div><h3>Notation: mouth</h3><p>Coverage, pressure, and rhythm as separable variables. Positioning for endurance. Breathing. Working with a partner's feedback in real time.</p></div>
+          <span class="len">44 min</span>
+        </div>
+        <div class="module">
+          <span class="num">05</span>
+          <div><h3>Solo practice and mapping</h3><p>Building your own sensitivity map, and how to translate it into something a partner can act on. Structured exercises, done alone.</p></div>
+          <span class="len">35 min</span>
+        </div>
+        <div class="module">
+          <span class="num">06</span>
+          <div><h3>When it doesn't happen</h3><p>Anorgasmia, SSRI and hormonal effects, pelvic floor tension, pain. Plainly marked: which of these is a technique problem and which is a doctor.</p></div>
+          <span class="len">41 min</span>
+        </div>
+        <div class="module">
+          <span class="num">07</span>
+          <div><h3>Saying it out loud</h3><p>The overlap tool â€” you each answer privately, and only the matches are shown. How to redirect mid-act without stopping everything.</p></div>
+          <span class="len">29 min</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLATE 05 â€” EVIDENCE ================= -->
+  <section class="plate">
+    <div class="plate-no">Plate<b>05</b>Evidence</div>
+    <div class="plate-body">
+      <h2>Everything here is sourced, and the sources are named.</h2>
+      <div class="cols">
+        <div class="col">
+          <h3>Clinically reviewed</h3>
+          <p>Every module is reviewed by an AASECT-certified sex therapist before release, credited by name on the module itself. Anatomy plates are checked against current clinical literature.</p>
+        </div>
+        <div class="col">
+          <h3>Where the line is</h3>
+          <p>This is education, not treatment. Pain, sudden change in function, and symptoms of pelvic floor dysfunction are flagged in-course with a clear instruction to see a clinician. We do not diagnose.</p>
+        </div>
+        <div class="col">
+          <h3>What we don't claim</h3>
+          <p>No technique works for everyone, and preference varies more than any course can cover. Where the evidence is thin or contested â€” the G-spot literature, for one â€” we say so rather than picking a side.</p>
+        </div>
+      </div>
+
+      <div class="lede" style="max-width:none">
+        <h3 style="margin-top:12px">Core references</h3>
+        <ul class="refs">
+          <li>O'Connell HE, Hutson JM, Plenter RJ, Murphy DM. <i>Anatomical relationship between urethra and clitoris.</i> Journal of Urology, 1998. â€” the anatomy in Fig. 1.</li>
+          <li>Basson R. <i>The female sexual response: a different model.</i> Journal of Sex &amp; Marital Therapy, 2000. â€” the responsive loop in Fig. 3.</li>
+          <li>Frederick DA, St. John HK, Garcia JR, Lloyd EA. <i>Differences in orgasm frequency among gay, lesbian, bisexual and heterosexual men and women in a U.S. national sample.</i> Archives of Sexual Behavior, 2018. â€” the orgasm gap.</li>
+          <li>Chivers ML, Seto MC, LalumiÃ¨re ML, Laan E, Grimbos T. <i>Agreement of self-reported and genital measures of sexual arousal.</i> Archives of Sexual Behavior, 2010. â€” arousal non-concordance, Module 02.</li>
+          <li>Herbenick D, Fu T-C, Arter J, Sanders SA, Dodge B. <i>Women's experiences with genital touching, sexual pleasure, and orgasm.</i> Journal of Sex &amp; Marital Therapy, 2018. â€” technique preference data behind Fig. 2.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLATE 06 â€” PRIVACY ================= -->
+  <section class="plate">
+    <div class="plate-no">Plate<b>06</b>Privacy</div>
+    <div class="plate-body">
+      <h2>Nobody needs to know you were here.</h2>
+      <div class="cols">
+        <div class="col"><h3>No third-party analytics</h3><p>Lesson pages carry no external trackers, tag managers, pixels, or embedded fonts. Aggregate counts only, on our own servers.</p></div>
+        <div class="col"><h3>Discreet billing</h3><p>The card statement reads <span class="mono" style="letter-spacing:.1em">CDNC LEARNING</span>. Nothing on the receipt names the subject matter.</p></div>
+        <div class="col"><h3>Browse before you buy</h3><p>The anatomy atlas is free and needs no account. We ask for an email only at the point of purchase.</p></div>
+        <div class="col"><h3>Deletion means deletion</h3><p>One button, no retention window, no exit survey, no re-engagement email afterwards. Age verification is handled by a third party who returns a yes or no and keeps no document.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLATE 07 â€” ACCESS ================= -->
+  <section class="plate">
+    <div class="plate-no">Plate<b>07</b>Access</div>
+    <div class="plate-body">
+      <h2>Pay once. It's a course, not a habit.</h2>
+      <div class="cols" style="align-items:start">
+        <div class="col" style="display:flex;flex-direction:column;gap:22px">
+          <div class="price-row">
+            <div class="price">$59</div>
+            <div class="price-note"><b>Once.</b> Not per month. You finish a course â€” you shouldn't be paying rent on it afterwards.</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn">Get access</button>
+            <a class="btn ghost" href="app.html#/atlas">Open the free atlas</a>
+          </div>
+        </div>
+        <div class="col">
+          <ul class="checks">
+            <li>All seven modules, and everything added later</li>
+            <li>Full notation library â€” 12 techniques, expanding</li>
+            <li>The anatomy atlas, free and open to everyone</li>
+            <li>Audio versions of every module</li>
+            <li>Thirty days, full refund, no questions and no reason asked</li>
+            <li>Clinician and clinic licensing available separately</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="shell">
+  <footer>
+    <div class="wordmark" style="font-size:19px">Cadence</div>
+    <p>Educational material for adults. Not medical advice, and not a substitute for care from a qualified clinician. If sex is painful, see a doctor before you change your technique.</p>
+    <span class="mono">18+ Â· Est. 2026</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- age gate ---------- */
+  var gate = document.getElementById("gate");
+  document.getElementById("gate-yes").addEventListener("click", function () {
+    gate.classList.add("gone");
+  });
+  document.getElementById("gate-no").addEventListener("click", function () {
+    document.getElementById("gate-refused").hidden = false;
+  });
+
+  /* ---------- Fig. 1 â€” anatomy ---------- */
+  var svg = document.getElementById("anatomy");
+  var readout = document.getElementById("anat-read");
+  var bTaught = document.getElementById("mode-taught");
+  var bFull = document.getElementById("mode-full");
+  var defaultRead = readout.textContent;
+
+  var ghostLabels = svg.querySelectorAll(".g-lbl.hidden-part[data-read]");
+
+  function setMode(taught) {
+    svg.classList.toggle("taught", taught);
+    bTaught.setAttribute("aria-pressed", String(taught));
+    bFull.setAttribute("aria-pressed", String(!taught));
+    // ghosted structures must leave the tab order too, not just lose pointer events
+    Array.prototype.forEach.call(ghostLabels, function (g) {
+      g.setAttribute("tabindex", taught ? "-1" : "0");
+    });
+    svg.setAttribute("aria-label", taught
+      ? "Diagram of the clitoris as usually drawn: only the external glans, about 8 millimetres across."
+      : "Diagram of the full clitoral complex: glans, body, two crura and two vestibular bulbs, spanning roughly nine to ten centimetres.");
+  }
+  bTaught.addEventListener("click", function () { setMode(true); });
+  bFull.addEventListener("click", function () { setMode(false); });
+
+  Array.prototype.forEach.call(svg.querySelectorAll(".g-lbl"), function (g) {
+    var hl = g.getAttribute("data-hl");
+    var text = g.getAttribute("data-read");
+    if (!text) return;
+    function on() {
+      if (hl) svg.classList.add("hl-" + hl);
+      readout.textContent = text;
+    }
+    function off() {
+      if (hl) svg.classList.remove("hl-" + hl);
+      readout.textContent = defaultRead;
+    }
+    g.addEventListener("mouseenter", on);
+    g.addEventListener("mouseleave", off);
+    g.addEventListener("focus", on);
+    g.addEventListener("blur", off);
+    g.setAttribute("tabindex", "0");
+  });
+
+  // markup starts in "as usually drawn" â€” sync tabindex and aria-label to match
+  setMode(true);
+
+  /* ---------- Fig. 2 â€” notation ---------- */
+  var PATTERNS = [
+    {
+      name: "Circling",
+      d: "M 170 106 C 199 106, 222 129, 222 158 C 222 187, 199 210, 170 210 C 141 210, 118 187, 118 158 C 118 129, 141 106, 170 106 Z",
+      why: "Circling distributes contact around the glans rather than onto it, recruiting the body and bulbs underneath. It is the most commonly reported preference precisely because it avoids the over-sensitivity that direct contact causes."
+    },
+    {
+      name: "Lateral sweep",
+      d: "M 112 158 C 134 138, 206 138, 228 158 C 206 178, 134 178, 112 158 Z",
+      why: "Side-to-side moves across the hood rather than through it. Useful when direct contact is too intense, and the easiest path to keep steady for a long stretch â€” which usually matters more than the path itself."
+    },
+    {
+      name: "Figure eight",
+      d: "M 170 158 C 192 132, 226 134, 226 158 C 226 182, 192 184, 170 158 C 148 132, 114 134, 114 158 C 114 182, 148 184, 170 158 Z",
+      why: "Two loops crossing at the midline means pressure keeps arriving from a changing angle. It resists the numbing that a perfectly repetitive path can produce over several minutes."
+    },
+    {
+      name: "Held, no motion",
+      d: "M 170 148 C 176 148, 181 152, 181 158 C 181 164, 176 168, 170 168 C 164 168, 159 164, 159 158 C 159 152, 164 148, 170 148 Z",
+      why: "Sustained still pressure, no movement at all. Frequently the last thing that happens before orgasm, and frequently abandoned too early because it feels like nothing is being done."
+    }
+  ];
+
+  var track = document.getElementById("track");
+  var head = document.getElementById("head");
+  var halo = document.getElementById("halo");
+  var pgauge = document.getElementById("pgauge");
+  var pOut = document.getElementById("p-out");
+  var tOut = document.getElementById("t-out");
+  var whyText = document.getElementById("why-text");
+  var live = document.getElementById("live-state");
+  var pressure = document.getElementById("pressure");
+  var tempo = document.getElementById("tempo");
+  var patButtons = document.querySelectorAll(".pattern-list button");
+
+  var current = 0;
+  var len = 0;
+  var progress = 0;
+  var last = null;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function applyPattern(i) {
+    current = i;
+    track.setAttribute("d", PATTERNS[i].d);
+    len = track.getTotalLength();
+    progress = 0;
+    whyText.textContent = PATTERNS[i].why;
+    Array.prototype.forEach.call(patButtons, function (b, n) {
+      b.setAttribute("aria-pressed", String(n === i));
+    });
+    // draw-on
+    if (!reduced) {
+      track.style.transition = "none";
+      track.style.strokeDasharray = len + " " + len;
+      track.style.strokeDashoffset = len;
+      void track.getBoundingClientRect();
+      track.style.transition = "stroke-dashoffset .7s cubic-bezier(.3,.7,.3,1)";
+      track.style.strokeDashoffset = "0";
+    }
+    sync();
+  }
+
+  function sync() {
+    var p = +pressure.value;
+    var t = +tempo.value;
+    track.setAttribute("stroke-width", String(1.8 + p * 1.5));
+    halo.setAttribute("r", String(8 + p * 3.2));
+    head.setAttribute("r", String(3.5 + p * 0.9));
+    var x = 34 + (p - 1) * 68;
+    var mark = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    mark.setAttribute("d", "M " + x + " 267 L " + x + " 285");
+    mark.setAttribute("style", "stroke:var(--carmine);stroke-width:2.5");
+    pgauge.textContent = "";
+    pgauge.appendChild(mark);
+    pOut.textContent = p + " / 5";
+    tOut.textContent = t + " / min";
+    live.textContent = PATTERNS[current].name + " Â· P" + p + " Â· " + t + " / min";
+    svgLabel();
+  }
+
+  function svgLabel() {
+    document.getElementById("notefield").setAttribute(
+      "aria-label",
+      "Notation diagram: " + PATTERNS[current].name.toLowerCase() +
+      " path at pressure " + pressure.value + " of 5, " + tempo.value + " cycles per minute."
+    );
+  }
+
+  function frame(ts) {
+    if (last === null) last = ts;
+    var dt = Math.min((ts - last) / 1000, 0.05);
+    last = ts;
+    progress = (progress + dt * (+tempo.value / 60)) % 1;
+    if (len > 0) {
+      var pt = track.getPointAtLength(progress * len);
+      head.setAttribute("cx", pt.x); head.setAttribute("cy", pt.y);
+      halo.setAttribute("cx", pt.x); halo.setAttribute("cy", pt.y);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  Array.prototype.forEach.call(patButtons, function (b) {
+    b.addEventListener("click", function () { applyPattern(+b.getAttribute("data-pat")); });
+  });
+  pressure.addEventListener("input", sync);
+  tempo.addEventListener("input", sync);
+
+  applyPattern(0);
+  if (!reduced) requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
+

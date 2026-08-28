@@ -1,0 +1,19 @@
+# Regenerable bulk data, too large for git (~345 MB in total).
+#
+#   DEM/            clipped elevation rasters, rebuilt from the COP30 tiles
+#   OSM/            Overpass extracts (roads, water), refetched on rebuild
+#   /*.tif          loose COP30 source tiles copied in from SriPada/DEM;
+#                   they are duplicates of that project's downloads
+#
+# Kept in the repo: _map_build/ (the whole build pipeline, payload and
+# template), the vector layers under Boundary/, Streams/, Watersheds/ and
+# Peaks, Falls/, cadence-site/, the QGIS project and the published
+# Knuckles_3D_Map.html.
+
+DEM/
+OSM/
+/*.tif
+
+# QGIS scratch
+*.qgz~
+*.qgd
